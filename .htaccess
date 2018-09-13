@@ -1,7 +1,7 @@
-Authtype Basic
-AuthName "GQ"
-AuthUserFile /home/gothamqu/public_html/.htpasswd
-Require valid-user
+#Authtype Basic
+#AuthName "GQ"
+#AuthUserFile /home/gothamqu/public_html/.htpasswd
+#Require valid-user
 
 
 ############################################
