@@ -1,0 +1,19 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="POSIMWebExt_EVOLinkerAPI::evolinkerapi_menu_item"
+             title="EVO Linker API"
+             module="POSIMWebExt_EVOLinkerAPI"
+             sortOrder="2"
+             resource="Magento_Backend::content"
+             parent="POSIMWebExt_WebExtManager::posim_admin_menu"
+        />
+        <add id="POSIMWebExt_EVOLinkerAPI::evolinkerapi_settings"
+             title="Settings"
+             module="POSIMWebExt_EVOLinkerAPI"
+             sortOrder="3"
+             resource="Magento_Backend::content"
+             parent="POSIMWebExt_EVOLinkerAPI::evolinkerapi_menu_item"
+             action="adminhtml/system_config/edit/section/evolinkerapi"
+        />
+    </menu>
+</config>

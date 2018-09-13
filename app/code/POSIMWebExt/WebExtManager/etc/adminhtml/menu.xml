@@ -1,0 +1,25 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="POSIMWebExt_WebExtManager::posim_admin_menu"
+             title="POSIM Extensions"
+             module="POSIMWebExt_WebExtManager"
+             sortOrder="9999"
+             resource="Magento_Backend::content"
+        />
+        <add id="POSIMWebExt_WebExtManager::webext_manager"
+             title="Extension Manager"
+             module="POSIMWebExt_WebExtManager"
+             sortOrder="1"
+             resource="Magento_Backend::content"
+             parent="POSIMWebExt_WebExtManager::posim_admin_menu"
+        />
+        <add id="POSIMWebExt_WebExtManager::check_for_updates"
+             title="Installed Extensions"
+             module="POSIMWebExt_WebExtManager"
+             sortOrder="1"
+             resource="Magento_Backend::content"
+             parent="POSIMWebExt_WebExtManager::webext_manager"
+             action="webextmanager/installed/index"
+        />
+    </menu>
+</config>

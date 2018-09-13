@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<config>
+    <extension_attributes for="POSIMWebExt\EVOLinkerAPI\Api\AccessInterface">
+        <attribute code="stock_item" type="Magento\CatalogInventory\Api\Data\StockItemInterface">
+            <resources>
+                <resource  ref="administrator"/>
+            </resources>
+            <join reference_table="cataloginventory_stock_item" reference_field="product_id" join_on_field="entity_id">
+                <field>qty</field>
+                <field>is_in_stock</field>
+                <field>use_config_min_sale_qty</field>
+            </join>
+        </attribute>
+    </extension_attributes>
+</config>
