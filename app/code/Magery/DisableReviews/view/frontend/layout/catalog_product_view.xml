@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @author     MageryThemes Team
+ * @copyright  Copyright (c) 2018 MageryThemes (https://magery-themes.com)
+ * @package    Magery_DisableReviews
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="product.info.details">
+            <action method="unsetChild" ifconfig="catalog/review/is_disabled">
+                <!-- remove "reviews.tab" block by alias -->
+                <argument name="block" xsi:type="string">reviews</argument>
+            </action>
+        </referenceBlock>
+    </body>
+</page>

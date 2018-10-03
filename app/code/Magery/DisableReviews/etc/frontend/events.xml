@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @author     MageryThemes Team
+ * @copyright  Copyright (c) 2018 MageryThemes (https://magery-themes.com)
+ * @package    Magery_DisableReviews
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="layout_generate_blocks_after">
+        <observer name="disable_review_link" instance="Magery\DisableReviews\Observer\RemoveBlocks" />
+    </event>
+    <event name="controller_action_predispatch_review">
+        <observer name="disable_review_route" instance="Magery\DisableReviews\Observer\DisableRoute" />
+    </event>
+</config>

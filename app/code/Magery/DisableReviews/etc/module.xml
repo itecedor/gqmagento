@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @author     MageryThemes Team
+ * @copyright  Copyright (c) 2018 MageryThemes (https://magery-themes.com)
+ * @package    Magery_DisableReviews
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../lib/internal/Magento/Framework/Module/etc/module.xsd">
+    <module name="Magery_DisableReviews" setup_version="1.0.0">
+        <sequence>
+            <Magento_Review/>
+        </sequence>
+    </module>
+</config>

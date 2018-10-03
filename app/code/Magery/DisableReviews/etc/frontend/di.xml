@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @author     MageryThemes Team
+ * @copyright  Copyright (c) 2018 MageryThemes (https://magery-themes.com)
+ * @package    Magery_DisableReviews
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Review\Block\Product\ReviewRenderer">
+        <plugin name="disableReviewsSummary" type="Magery\DisableReviews\Plugin\ReviewRenderer" sortOrder="1" disabled="false"/>
+    </type>
+</config>
