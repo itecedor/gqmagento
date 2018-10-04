@@ -11,7 +11,8 @@
         "magento/product-community-edition": "2.2.6",
         "composer/composer": "@alpha",
         "taxjar/module-taxjar": "^1.0",
-        "galacticlabs/disable-compare-products": "^1.0"
+        "galacticlabs/disable-compare-products": "^1.0",
+	"apptrian/facebook-pixel": "2.1.6"
     },
     "require-dev": {
         "phpunit/phpunit": "~6.2.0",
