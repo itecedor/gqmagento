@@ -39,10 +39,10 @@ class AddToLinks extends AbstractHelper
     /**
      * @var bool
      */
-    protected $showCompare = true;
+    protected $showCompare = false;
 
     public function __construct(
-        Context $context, 
+        Context $context,
         WishlistHelperData $wishlistHelper,
         CompareHelperData $compareHelper,
         Escaper $escaper
