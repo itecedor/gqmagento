@@ -1,0 +1,85 @@
+<?php
+/** @var $block \Magento\Catalog\Block\Product\View */
+
+$_product = $block->getProduct();
+$buttonTitle = __('Add to Cart');
+
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$stockObject = $objectManager->get('Magento\CatalogInventory\Api\StockRegistryInterface')->getStockItem($_product->getId());
+$currentStockQty = $stockObject->getQty();
+
+$minQtyAllowed = $stockObject->getMinSaleQty();
+
+#show drop down for fractional fabric products
+$showDropdown = false;
+if ($minQtyAllowed < 1) {
+    $showDropdown = true;
+}
+
+if ($_product->isSaleable()): ?>
+
+    <div class="box-tocart">
+        <div class="fieldset">
+            <?php if ($block->shouldRenderQuantity()): ?>
+                <?php if ($showDropdown): ?>
+                          <div class="field qty">
+                              <label class="label" for="qty"><span>Qty (yards)</span></label>
+                              <select name="qty" id="qty" title="Qty" class="input-text qty" data-validate="<?php echo $block->escapeHtml(json_encode($block->getQuantityValidators())) ?>">
+                                     <option value>Choose amount...</option>
+                                     <?php $i = .5 ;
+                                       while ($i <= $currentStockQty) { ?>
+                                          <option value="<?php echo $i; ?>"><?php echo $i . ' yard cut'; ?></option>
+                                          <?php $i = $i + .5; ?>
+                                       <?php } ?>
+                              </select>
+
+                          </div>
+                  <?php else: ?>
+                      <div class="field qty">
+                      <label class="label" for="qty"><span><?= /* @escapeNotVerified */ __('Qty') ?></span></label>
+                      <div class="control">
+                          <input type="number"
+                                 name="qty"
+                                 id="qty"
+                                 value="<?= /* @escapeNotVerified */ $block->getProductDefaultQty() * 1 ?>"
+                                 title="<?= /* @escapeNotVerified */ __('Qty') ?>"
+                                 class="input-text qty"
+                                 data-validate="<?= $block->escapeHtml(json_encode($block->getQuantityValidators())) ?>"
+                                 />
+                      </div>
+                  <?php endif; ?>
+        </div>
+
+            <?php endif; ?>
+            <div class="actions">
+                <button type="submit"
+                        title="<?php /* @escapeNotVerified */ echo $buttonTitle ?>"
+                        class="action primary tocart"
+                        id="product-addtocart-button">
+                    <span><?php /* @escapeNotVerified */ echo $buttonTitle ?></span>
+                </button>
+                <?php echo $block->getChildHtml('', true) ?>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+    <script type="text/x-magento-init">
+        {
+            "#product_addtocart_form": {
+                "Magento_Catalog/product/view/validation": {
+                    "radioCheckboxClosest": ".nested"
+                }
+            }
+        }
+    </script>
+<?php if (!$block->isRedirectToCartEnabled()) : ?>
+    <script type="text/x-magento-init">
+        {
+            "#product_addtocart_form": {
+                "catalogAddToCart": {
+                    "bindSubmit": true
+                }
+            }
+        }
+    </script>
+<?php endif; ?>
