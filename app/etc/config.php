@@ -102,7 +102,7 @@ return [
         'Magento_Captcha' => 1,
         'Magento_SalesAnalytics' => 1,
         'Magento_SalesInventory' => 1,
-        'Magento_OfflineShipping' => 0,
+        'Magento_OfflineShipping' => 1,
         'Amazon_Login' => 1,
         'Magento_UrlRewrite' => 1,
         'Magento_CatalogSearch' => 1,
