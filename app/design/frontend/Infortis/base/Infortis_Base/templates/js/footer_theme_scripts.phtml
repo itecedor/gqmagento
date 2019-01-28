@@ -490,7 +490,6 @@ requirejs(['jquery', 'enquire'], function(jQuery, enquire) {
 
         jQuery.fn.toggleSingle = function (options) {
 
-            // passing destruct: true allows
             var settings = $.extend({
                 destruct: false
             }, options);
@@ -503,10 +502,8 @@ requirejs(['jquery', 'enquire'], function(jQuery, enquire) {
                             .toggleClass('no-display')
                             .parent()
                             .toggleClass('active');
-                            // .toggleClass('active')
-                            // .next()
-                            // .toggleClass('no-display');
                     });
+
                     // Hide the content
                     $this = $(this);
                     if (!$this.parent().hasClass('active'))
@@ -518,6 +515,7 @@ requirejs(['jquery', 'enquire'], function(jQuery, enquire) {
                 {
                     // Remove event handler so that the toggle link can no longer be used
                     $(this).off('click');
+
                     // Remove all classes that were added by this plugin
                     $(this)
                         .next()
@@ -530,21 +528,84 @@ requirejs(['jquery', 'enquire'], function(jQuery, enquire) {
 
         } // end: toggleSingle
 
+        // Collapsible block - with delegated event
+        // Modification of the standard collapsible block plugin. It has a delegated click event attached to block's container.
+        // It is required for some blocks inside "additional sidebar" (currently: wishlist and compare)
+        // which are created/modified dynamically by Magento's JavaScript code.
+
+        jQuery.fn.toggleMultiBlocks = function (options) {
+
+            var settings = $.extend({
+                destruct: false,
+                blockHeadingSelector: '.block-title'
+            }, options);
+
+            return this.each(function () {
+
+                // Container of blocks
+                var $sidebar = $(this);
+
+                // All blocks inside the container
+                var $blockHeadings = $sidebar.find(settings.blockHeadingSelector);
+
+                if (!settings.destruct)
+                {
+                    $sidebar.on('click', settings.blockHeadingSelector, function(e) {
+                        $(this)
+                            .next().toggleClass('no-display')
+                            .parent().toggleClass('active');
+                    });
+
+                    // Hide the content in all blocks
+                    $blockHeadings.each(function () {
+                        var heading = $(this);
+                        if (!heading.parent().hasClass('active'))
+                        {
+                            heading.next().addClass('no-display');
+                            // Here we may need to add that class to the next sibling
+                            // if block's content consists of more elements than just one:
+                            // .next().addClass('no-display')
+                        }
+                        else
+                        {
+                            heading.next().removeClass('no-display');
+                        }
+                    });
+                }
+                else
+                {
+                    // Remove event handler so that the toggle link can no longer be used
+                    $sidebar.off('click');
+
+                    // Remove all classes that were added by this plugin
+                    $blockHeadings
+                        .next().removeClass('no-display')
+                        .parent().removeClass('active');
+                }
+
+            });
+
+        } // end: toggleMultiBlocks
+
         var breakpointScreenM = 768; // The same value as Magento's breakpoint @screen__m
 
         // Blocks collapsing on smaller viewports
         enquire.register('(max-width: ' + (breakpointScreenM - 1) + 'px)', {
             setup: function () {
                 this.toggleElements = $(
-                    '.sidebar .block:not(#layered-filter-block) .block-title, ' +
                     '.mobile-collapsible .block-title'
+                );
+                this.delayedToggleElements = $(
+                    '.sidebar'
                 );
             },
             match: function () {
                 this.toggleElements.toggleSingle();
+                this.delayedToggleElements.toggleMultiBlocks({blockHeadingSelector: '.block:not(#layered-filter-block) .block-title'});
             },
             unmatch: function () {
                 this.toggleElements.toggleSingle({destruct: true});
+                this.delayedToggleElements.toggleMultiBlocks({destruct: true, blockHeadingSelector: '.block:not(#layered-filter-block) .block-title'});
             }
         });
 

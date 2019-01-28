@@ -808,48 +808,63 @@
             .product-item {
                 margin-bottom: @indent__base;
                 position: relative;
+
                 &-info {
                     position: relative;
-                    width: auto;
+                    // width: auto;
+
+                    // New:
+                    display: inline-block; // To separate items - without it the content of an item overlap lower item
+                    width: 100%; // To stretch items - without it the X button is displayed next to the product name
+
                     .product-item-photo {
                         position: absolute;
                         left: 0;
                         top: 0;
                     }
                 }
+
                 &-name {
                     margin-top: 0;
                 }
+
                 &-details {
                     margin: 0 0 0 85px;
                 }
+
                 &-actions {
                     display: block;
                     margin-top: @indent__s;
                 }
             }
+
             .price-box {
                 display: block;
                 margin: 7px 0;
             }
+
             .text {
                 margin-right: 8px;
             }
+
             .counter {
                 .lib-css(color, @primary__color__lighter);
                 .lib-font-size(12);
                 white-space: nowrap;
             }
+
             .minilist {
                 .price {
                     display: inline;
                     padding: 0;
                 }
+
                 .weee:before {
                     display: inline-block;
                 }
             }
         }
+
         .action {
             &.delete {
                 &:extend(.abs-remove-button-for-blocks all);
@@ -858,6 +873,7 @@
                 top: 0;
             }
         }
+        
         .subtitle {
             &:extend(.abs-no-display all);
         }

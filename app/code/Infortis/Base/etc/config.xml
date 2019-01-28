@@ -358,7 +358,7 @@
         <mobile_link_separator_color>#eee</mobile_link_separator_color>
         <mobile_shadow>1</mobile_shadow>
 
-        <level1_font_family/>
+        <level1_font_family><![CDATA[Bitter]]></level1_font_family> <!-- IMPORTANT: Font must be defined in "defined_fonts" -->
         <level1_font_size>16</level1_font_size>
         <level1_font_weight/>
         <level1_font_uppercase>1</level1_font_uppercase>
@@ -368,7 +368,7 @@
         <level2_font_weight/>
         <level2_font_uppercase>0</level2_font_uppercase>
 
-        <mega_lev1_font_family/>
+        <mega_lev1_font_family><![CDATA[Bitter]]></mega_lev1_font_family> <!-- IMPORTANT: Font must be defined in "defined_fonts" -->
         <mega_lev1_font_size>16</mega_lev1_font_size>
         <mega_lev1_font_weight/>
         <mega_lev1_font_uppercase>1</mega_lev1_font_uppercase>
