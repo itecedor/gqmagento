@@ -16,6 +16,32 @@
 
 //  Below you can find usage examples.
 
+
+& when (@media-common = true) {
+
+    //  Set border color of search box
+    .header-regular .block-search input.input-text {
+      border-color: red;
+    }
+
+    // styling for fabric drop down quantity
+    .product-info-main .product-add-form .box-tocart .fieldset .field.qty {
+      float: left;
+      padding-left: 0;
+      padding-bottom: 10px;
+    }
+
+    .product-info-main .product-info-main .input-text.qty {
+      width: 175px;
+    }
+
+    // hide product image name
+    .fotorama__caption {
+      display: none;
+    }
+} // end: media-common
+
+
 //  Uncomment the line below to disable Font Awesome icons:
 
 // @fontawesome-enable: false;
