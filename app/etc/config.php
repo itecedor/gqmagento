@@ -4,7 +4,7 @@ return [
         'Magento_Store' => 1,
         'Magento_Directory' => 1,
         'Magento_Theme' => 1,
-        'Apptrian_FacebookPixel' => 0,
+        'Apptrian_FacebookPixel' => 1,
         'Magento_Backend' => 1,
         'GalacticLabs_DisableCompareProducts' => 1,
         'Infortis_Infortis' => 1,
