@@ -24,7 +24,7 @@ if ($_product->isSaleable()): ?>
                 <?php if ($showDropdown): ?>
                           <div class="field qty">
                               <label class="label" for="qty"><span>Qty</span></label>
-                              <select name="qty" id="qty" title="Qty" class="input-text qty" data-validate="<?php echo $block->escapeHtml(json_encode($block->getQuantityValidators())) ?>">
+                              <select name="qty" id="qty" title="Qty" class="input-text qty dropdown" data-validate="<?php echo $block->escapeHtml(json_encode($block->getQuantityValidators())) ?>">
                                      <option value>Choose amount...</option>
                                      <?php $i = .5 ;
                                        while ($i <= $currentStockQty) { ?>
