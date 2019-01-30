@@ -19,3 +19,20 @@
 //  Uncomment the line below to disable Font Awesome icons:
 
 // @fontawesome-enable: false;
+
+& when (@media-common = true) {
+    // styling for fabric drop down quantity
+    .product-info-main .product-add-form .box-tocart .fieldset .field.qty {
+      float: left;
+      padding: 0 10px 10px 0;
+    }
+
+    .product-info-main .product-info-main .qty .dropdown {
+      width: 163px;
+    }
+
+    // hide product image name
+    .fotorama__caption {
+      display: none;
+    }
+} // end: media-common
