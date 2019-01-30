@@ -20,6 +20,7 @@ return [
         'Magento_Customer' => 1,
         'MSP_ReCaptcha' => 1,
         'Magento_Config' => 1,
+        'MagePal_Reindex' => 1,
         'Magento_Cms' => 1,
         'Magento_Quote' => 1,
         'Magento_AdvancedPricingImportExport' => 1,
