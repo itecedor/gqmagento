@@ -1,0 +1,31 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+
+/**
+ * @var $block \Magento\CatalogInventory\Block\Stockqty\DefaultStockqty
+ */
+
+$_product = $block->getProduct();
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$stockObject = $objectManager->get('Magento\CatalogInventory\Api\StockRegistryInterface')->getStockItem($_product->getId());
+$currentStockQty = $stockObject->getQty();
+
+$minQtyAllowed = $stockObject->getMinSaleQty();
+
+$outputText = ' available';
+if ($minQtyAllowed < 1) {
+  $outputText = ' yards available';
+}
+
+?>
+
+<?php if ($block->isMsgVisible()): ?>
+    <div class="availability only" title="<?= /* @escapeNotVerified */ __('Only %1 left', ($block->getStockQtyLeft())) ?>">
+      <?= $block->getStockQtyLeft() . $outputText ?>
+    </div>
+<?php endif ?>
