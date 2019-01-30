@@ -24,8 +24,8 @@ if ($minQtyAllowed < 1) {
 
 ?>
 
-<?php if ($block->isMsgVisible()): ?>
-    <div class="availability only" title="<?= /* @escapeNotVerified */ __('Only %1 left', ($block->getStockQtyLeft())) ?>">
-      <?= $block->getStockQtyLeft() . $outputText ?>
+<?php if ($block->isMsgVisible() && $currentStockQty > 0): ?>
+    <div class="availability only" title="<?= /* @escapeNotVerified */ __('Only %1 left', ($currentStockQty)) ?>">
+      <?= $currentStockQty . $outputText ?>
     </div>
 <?php endif ?>
