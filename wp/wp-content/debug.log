@@ -1,0 +1,9 @@
+[29-Mar-2019 17:09:47 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function wp_generate_attachment_metadata() in /home/gothamqu/public_html/wp/wp-content/plugins/auto-upload-images/src/ImageUploader.php:216
+Stack trace:
+#0 /home/gothamqu/public_html/wp/wp-content/plugins/auto-upload-images/src/ImageUploader.php(193): ImageUploader->attachImage('/home/gothamqu/...', 'https://new.got...', 'Carkai-neutral....')
+#1 /home/gothamqu/public_html/wp/wp-content/plugins/auto-upload-images/src/WpAutoUpload.php(104): ImageUploader->save()
+#2 /home/gothamqu/public_html/wp/wp-content/plugins/auto-upload-images/src/WpAutoUpload.php(80): WpAutoUpload->save(Object(WP_Post))
+#3 /home/gothamqu/public_html/wp/wp-includes/class-wp-hook.php(288): WpAutoUpload->afterSavePost(14376)
+#4 /home/gothamqu/public_html/wp/wp-includes/class-wp-hook.php(310): WP_Hook->apply_filters(NULL, Array)
+#5 /home/gothamqu/public_html/wp/wp-includes/plugin.php(465): WP_Hook->do_action(Array)
+#6 /home/gothamqu/public_html/wp/wp-includes/post.php(3951): do_action('save_post', 14376, Obje in /home/gothamqu/public_html/wp/wp-content/plugins/auto-upload-images/src/ImageUploader.php on line 216
