@@ -41,15 +41,6 @@ module.exports = {
         ],
         dsl: 'less'
     },
-    ultimo: {
-        area: 'frontend',
-        name: 'Infortis/ultimo',
-        locale: 'en_US',
-        files: [
-            'css/_custom'
-        ],
-        dsl: 'less'
-    },
     backend: {
         area: 'adminhtml',
         name: 'Magento/backend',
