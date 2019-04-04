@@ -24,16 +24,16 @@ define( 'WP_DEBUG_LOG', true );
 
 // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define( 'DB_NAME', 'gothamqu_wordpress' );
+define( 'DB_NAME', 'db_3dp7bl8s9zv' );
 
 /** MySQL database username */
-define( 'DB_USER', 'gothamqu_wp' );
+define( 'DB_USER', 'user_3dp7bl8s9zv' );
 
 /** MySQL database password */
-define( 'DB_PASSWORD', 'ChinUpLady1' );
+define( 'DB_PASSWORD', '0a191344-14c8-490a-a955-b12559acee7d' );
 
 /** MySQL hostname */
-define( 'DB_HOST', 'localhost' );
+define( 'DB_HOST', 'mysql' );
 
 /** Database Charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8mb4' );
@@ -67,7 +67,7 @@ define( 'NONCE_SALT',       's;<|:H<c-7#0WY0JiXP{cKDz+X6>ev4U6:8,JH<tduzhXiw~~[X
  * You can have multiple installations in one database if you give each
  * a unique prefix. Only numbers, letters, and underscores please!
  */
-$table_prefix = 'wp_';
+$table_prefix = 'mgs4_wp_';
 
 /**
  * For developers: WordPress debugging mode.

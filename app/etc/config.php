@@ -5,6 +5,7 @@ return [
         'Magento_Directory' => 1,
         'Magento_Theme' => 1,
         'Apptrian_FacebookPixel' => 1,
+        'Auctane_Api' => 1,
         'Magento_Backend' => 1,
         'FishPig_WordPress' => 1,
         'GalacticLabs_DisableCompareProducts' => 1,
@@ -22,6 +23,7 @@ return [
         'MSP_ReCaptcha' => 1,
         'Magento_Config' => 1,
         'MagePal_Reindex' => 1,
+        'Magenest_Core' => 1,
         'Magento_Cms' => 1,
         'Magento_Quote' => 1,
         'Magento_AdvancedPricingImportExport' => 1,
@@ -200,7 +202,7 @@ return [
         'Magento_Tinymce3' => 1,
         'Magento_Translation' => 1,
         'Magento_GoogleOptimizer' => 1,
-        'Magento_Ups' => 0,
+        'Magento_Ups' => 1,
         'Magento_SampleData' => 1,
         'Magento_CatalogUrlRewriteGraphQl' => 1,
         'Magento_AsynchronousOperations' => 1,
@@ -221,7 +223,7 @@ return [
         'POSIMWebExt_EVOLinkerAPI' => 1,
         'POSIMWebExt_WebExtManager' => 1,
         'Temando_Shipping' => 0,
-        'Taxjar_SalesTax' => 0,
+        'Taxjar_SalesTax' => 1,
         'Vertex_Tax' => 0
     ]
 ];
