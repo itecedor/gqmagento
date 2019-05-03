@@ -40,7 +40,7 @@ $schema = ($block->getZone() == 'item_view') ? true : false;
             'skip_adjustments'  => true
         ]); ?>
     </span>
-<?php elseif ($block->getDisplayValue() == 0 ):  ?>
+<?php elseif ($finalPriceModel->getValue() == 0 ):  ?>
   <span class="price">Free</span>
 <?php else: ?>
     <?php /* @escapeNotVerified */ echo $block->renderAmount($finalPriceModel->getAmount(), [
