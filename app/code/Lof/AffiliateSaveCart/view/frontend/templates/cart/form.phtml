@@ -1,0 +1,204 @@
+<?php
+
+// @codingStandardsIgnoreFile
+
+/**  @var $block \Lof\AffiliateSaveCart\Block\Cart */
+
+$buttonTitle = ($block->getActionValue() == 'save') ? 'Save Shopping Cart' : 'Update Shopping Cart';
+$save_cart_data = $block->getQuoteSaveCartData();
+$share_cart_route = $block->getShareSaveCartRoute();
+$share_link = "";
+$qrcode = "";
+$_helper = $this->helper("Lof\AffiliateSaveCart\Helper\Data");
+$enable_qrcode = $_helper->getConfig("affiliatesavecart/enable_qrcode");
+$enable_commission = $_helper->getConfig("affiliatesavecart/enable_commission");
+?>
+<div><?php /* @escapeNotVerified */ echo __('If you would like to add new items to this cart, you need to add this cart to the main cart.') ?></div>
+<?php
+if ($save_cart_data) {
+    $share_link = $this->getUrl('affiliatesavecart/cart/addcart', ['cart_id' => $save_cart_data->getId()]);
+    if($share_cart_route) {
+      $share_link = str_replace('affiliatesavecart/cart/addcart/cart_id', $share_cart_route, $share_link);
+    }
+    $pricingHelper = $this->helper('Magento\Framework\Pricing\Helper\Data');
+    $commission = $pricingHelper->currency($save_cart_data->getCommission(), true, false);
+    $qrcode = 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl='.$share_link.'&choe=UTF-8';
+?>
+      <div><?php /* @escapeNotVerified */ echo __('Share Link: ') ?><a href="<?php /* @escapeNotVerified */ echo $share_link ?>"><?php /* @escapeNotVerified */ echo $share_link ?></a></div>
+      <?php if($enable_qrcode) { ?>
+      <div><?php /* @escapeNotVerified */ echo __('QR Code: ') ?></div>
+      <div><img src="<?php echo $qrcode ?>"></div>
+      <?php } ?>
+      <?php if($enable_commission) { ?>
+      <?php if($block->getAccountAffiliate()->getId()) { ?>
+      <div><?php /* @escapeNotVerified */ echo __('Commission: '). $commission ?></div>
+      <?php }else{ ?>
+      <div><?php /* @escapeNotVerified */ echo __('Commission: '). 0 . __(' (Please join in affiliate system to get commission when share this cart)') ?></div>
+      <?php } ?>
+      <?php } ?>
+<?php } ?>
+
+<?php $mergedCells = ($this->helper('Magento\Tax\Helper\Data')->displayCartBothPrices() ? 2 : 1); ?>
+
+<?php //start to share cart ?>
+<?php if($save_cart_data && $block->isEnableShareSaveCart()) { ?>
+<div class="show-share-cart-form"><a href="javascript:;" id="shareSaveCartLink"><?php echo __("Share the save cart"); ?></a></div>
+<div id="shareCartHiddenForm" class="share-cart-form" style="display: none">
+  <form action="<?php /* @escapeNotVerified */ echo $block->getUrl('affiliatesavecart/cart/sharetoemail') ?>"
+            method="post"
+            id="share-form-validate"
+            data-mage-init='{"validation":{}}'
+            class="form">
+  <?php echo $block->getBlockHtml('formkey'); ?>
+  <input name="cart_id" type="hidden" value="<?php echo $save_cart_data->getId() ?>">
+  <input name="customer_email" type="hidden" value="<?php echo $block->getCustomerData()->getEmail(); ?>">
+  <input name="share_link" type="hidden" value="<?php echo $share_link; ?>">
+  <input name="qrcode" type="hidden" value="<?php echo $qrcode; ?>">
+  <input name="customer_name" type="hidden" value="<?php echo $block->getCustomerData()->getName(); ?>">
+  <fieldset class="fieldset">
+        <div class="field required">
+            <label class="label" for="subject">
+                <span><?php echo $block->escapeHtml(__('Subject')) ?></span>
+            </label>
+            <div class="control">
+                <input id="subject"
+                       name="subject"
+                       value=""
+                       placeholder="<?php echo $block->escapeHtml(__('Input email subject')); ?>"
+                       type="text"
+                       title="<?php echo $block->escapeHtml(__('Input email subject')); ?>"
+                       class="input-text"
+                       maxlength="255"
+                       data-validate="{required:true}"/>
+            </div>
+        </div>
+        <div class="field required">
+            <label class="label" for="emails">
+                <span><?php echo $block->escapeHtml(__('Emails')) ?></span>
+            </label>
+            <div class="control">
+                <input id="emails"
+                       name="emails"
+                       value=""
+                       placeholder="<?php echo $block->escapeHtml(__('Input emails address')); ?>"
+                       type="text"
+                       title="<?php echo $block->escapeHtml(__('Input emails address. Can input more email address by use ,')); ?>"
+                       class="input-text"
+                       maxlength="255"
+                       data-validate="{required:true}"/>
+                <br/><span class="help"><?php echo __("Input list emails address to send to, use , to input multiple emails address."); ?></span>
+            </div>
+        </div>
+         <div class="field required">
+            <label class="label" for="message">
+                <span><?php echo $block->escapeHtml(__('Message')) ?></span>
+            </label>
+            <div class="control">
+                <textarea name="message" cols="25" rows="15" maxlength="1000" data-validate="{required:true}"></textarea>
+                <br/><span class="help"><?php echo __("Input the message as you want. Limit 1000 charectors."); ?></span>
+            </div>
+        </div>
+  </fieldset>
+  <div class="cart main actions">
+          <button type="submit"
+                  name="share_save_cart_action"
+                  value="share"
+                  title="<?php echo $block->escapeHtml(__("Share Save Cart To Emails")); ?>"
+                  class="action update">
+              <span><?php /* @escapeNotVerified */ echo __("Share Save Cart To Emails"); ?></span>
+          </button>
+          <input type="hidden" value="" id="save_save_cart_action_container" data-cart-item-update=""/>
+  </div>
+  </form>
+</div>
+<script type="text/javascript">
+  require([
+    'jquery'
+    ], function($){
+      $("#shareSaveCartLink").click(function(){
+          $("#shareCartHiddenForm").slideToggle();
+      })
+  });
+
+</script>
+<?php } ?>
+<?php //end to share cart ?>
+<?php echo $block->getChildHtml('form_before') ?>
+<form action="<?php /* @escapeNotVerified */ echo $block->getUrl('affiliatesavecart/cart/updatePost') ?>"
+          method="post"
+          id="form-validate"
+          data-mage-init='{"validation":{}}'
+          class="form">
+    <?php echo $block->getBlockHtml('formkey'); ?>
+    <input name="quote_id" type="hidden" value="<?php echo $block->getQuote()->getId() ?>">
+    <div class="cart table-wrapper<?php echo $mergedCells == 2 ? ' detailed' : ''; ?>">
+        <table id="shopping-cart-table"
+               class="cart items data table"
+               data-mage-init='{"shoppingCart":{"emptyCartButton": "action.clear",
+               "updateCartActionContainer": "#update_cart_action_container"}}'>
+            <caption role="heading" aria-level="2" class="table-caption"><?php /* @escapeNotVerified */ echo __('Shopping Cart Items') ?></caption>
+            <thead>
+                <tr>
+                    <th class="col item" scope="col"><span><?php /* @escapeNotVerified */ echo __('Item') ?></span></th>
+                    <th class="col price" scope="col"><span><?php /* @escapeNotVerified */ echo __('Price') ?></span></th>
+                    <th class="col qty" scope="col"><span><?php /* @escapeNotVerified */ echo __('Qty') ?></span></th>
+                    <th class="col subtotal" scope="col"><span><?php /* @escapeNotVerified */ echo __('Subtotal') ?></span></th>
+                </tr>
+            </thead>
+            <?php foreach ($block->getItems() as $_item): ?>
+                <?php echo $block->getItemHtml($_item) ?>
+            <?php endforeach ?>
+            <tfoot>
+                <?php echo $block->getTotals(); ?>
+            </tfoot>
+        </table>
+    </div>
+    <fieldset class="fieldset">
+        <div class="field required">
+            <label class="label" for="cart-name">
+                <span><?php echo $block->escapeHtml(__('Cart Name / Job Name / PO Number')) ?></span>
+            </label>
+            <div class="control">
+                <input id="cart-<?php /* @escapeNotVerified */ echo $_item->getId() ?>-qty"
+                       name="cart[quote_name]"
+                       value="<?php /* @escapeNotVerified */ echo $block->getQuoteName() ?>"
+                       type="text"
+                       title="<?php echo $block->escapeHtml(__('Cart Name / Job Name / PO Number')); ?>"
+                       class="input-text"
+                       maxlength="255"
+                       data-validate="{required:true}"/>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label" for="cart-comment">
+                <span><?php /* @escapeNotVerified */ echo __('Note') ?></span>
+            </label>
+            <div class="control">
+                <textarea id="cart-<?php /* @escapeNotVerified */ echo $_item->getId() ?>-qty"
+                       name="cart[quote_comment]"
+                       title="<?php echo $block->escapeHtml(__('Note')); ?>"
+                       class="input-text"><?php /* @escapeNotVerified */ echo $block->getQuoteComment() ?></textarea>
+            </div>
+        </div>
+    </fieldset>
+    <div class="cart main actions">
+        <?php /*if ($block->getContinueShoppingUrl()): ?>
+            <a class="action continue"
+               href="<?php echo $block->escapeUrl($block->getContinueShoppingUrl()) ?>"
+               title="<?php echo $block->escapeHtml(__('Continue Shopping')); ?>">
+                <span><?php / @escapeNotVerified / echo __('Continue Shopping') ?></span>
+            </a>
+        <?php endif;*/ ?>
+        <button type="submit"
+                name="update_cart_action"
+                value="<?php echo $block->getActionValue() ?>"
+                title="<?php echo $block->escapeHtml(__($buttonTitle)); ?>"
+                class="action update">
+            <span><?php /* @escapeNotVerified */ echo __($buttonTitle); ?></span>
+        </button>
+        <input type="hidden" value="" id="update_cart_action_container" data-cart-item-update=""/>
+    </div>
+</form>
+<?php echo $block->getChildHtml('checkout.cart.order.actions') ?>
+<?php echo $block->getChildHtml('shopping.cart.table.after'); ?>
+

@@ -1,0 +1,13 @@
+<div id="affiliatesavecart-link" data-bind="scope:'saveCartLink'">
+    <script>
+        window.saveCartLinkConfig = <?= /* @escapeNotVerified */ $block->getAffiliateSaveCartLinkConfig() ?>;
+    </script>
+    <!-- ko template: getTemplate() --><!-- /ko -->
+    <script type="text/x-magento-init">
+        {
+            "#affiliatesavecart-link": {
+                "Magento_Ui/js/core/app": <?php /* @escapeNotVerified */ echo $block->getJsLayout();?>
+            }
+        }
+    </script>
+</div>

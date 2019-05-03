@@ -1,0 +1,30 @@
+<!--
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<!--@subject {{var data.subject}} @-->
+<!--@vars {
+"var data.share_link":"Share Link",
+"var data.share_link":"Share Link",
+"var data.qrcode":"Qrcode Link",
+"var data.subject":"Subject",
+"var data.message":"Message",
+"var data.customer_name":"Customer Name"
+} @-->
+{{template config_path="design/email/header_template"}}
+
+{{trans "Dear My Friend!"}}
+<br/>
+{{trans "You have a message from"}} <strong>{{var data.customer_name}}</strong>
+<p style="background:#ffc1076e;margin-top:5px;padding:5px">{{var data.message}}</p>
+<br/>
+{{trans "Please view the shopping cart link at here:"}}
+<a href="{{var data.share_link|raw}}">{{var data.share_link|raw}}</a>
+<br/>
+{{trans "Or scan QR Code:"}}
+<br/>
+<a href="{{var data.share_link|raw}}"><img src="{{var data.qrcode}}" alt="{{var data.share_link|raw}}"></a>
+
+{{template config_path="design/email/footer_template"}}

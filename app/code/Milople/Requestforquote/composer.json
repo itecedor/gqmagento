@@ -1,0 +1,19 @@
+{
+    "name": "milople/requestforquote",
+    "description": "Hide Product Price. Replace Add to cart button with Request for Quote Button.",
+    "require": {
+      "php": "~5.5.0|~5.6.0|~7.0.0|~7.1.0",
+	  "milople/all": "2.0.0"
+    },
+	"type": "magento2-module",
+    "version": "1.0.2",
+    "license": [
+        "Commercial"
+    ],
+    "autoload": {
+		"files": [ "registration.php" ],
+        "psr-4": {
+            "Milople\\Requestforquote\\": ""
+        }
+    }
+}

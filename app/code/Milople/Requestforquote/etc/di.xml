@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--
+/**
+*
+* Do not edit or add to this file if you wish to upgrade the module to newer
+* versions in the future. If you wish to customize the module for your
+* needs please contact us to https://www.milople.com/contact-us.html
+*
+* @category    Ecommerce
+* @package     Milople_Requestforquote
+* @copyright   Copyright (c) 2017 Milople Technologies Pvt. Ltd. All Rights Reserved.
+* @url         https://www.milople.com/magento2-extension/request-for-quote-m2.html
+*
+**/
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../lib/internal/Magento/Framework/ObjectManager/etc/config.xsd">
+    <preference for="Magento\Catalog\Pricing\Render\FinalPriceBox" type="Milople\Requestforquote\Block\Requestforquote" />
+	<!-- Create our type PostGridDataProvider -->
+    <virtualType name="PostGridDataProvider" type="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider">
+        <arguments>
+            <argument name="collection" xsi:type="object" shared="false">Milople\Requestforquote\Model\ResourceModel\Enquiry\Collection</argument>
+            <argument name="filterPool" xsi:type="object" shared="false">PostGridFilterPool</argument> <!-- Define new object for filters -->
+        </arguments>
+    </virtualType>
+ 
+  
+    <!-- Type for personalize_fonts_listing_data_source -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="requestforquote_enquiries_listing_data_source" xsi:type="string">Milople\Requestforquote\Model\ResourceModel\Enquiry\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+ 
+    <!-- Simulate our class Milople\Requestforquote\Model\ResourceModel\Grid\Post\Collection -->
+    <virtualType name="Milople\Requestforquote\Model\ResourceModel\Enquiry\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">requestforquote_enquiries</argument>
+            <argument name="resourceModel" xsi:type="string">Milople\Requestforquote\Model\ResourceModel\Enquiry</argument>
+        </arguments>
+    </virtualType>
+</config>

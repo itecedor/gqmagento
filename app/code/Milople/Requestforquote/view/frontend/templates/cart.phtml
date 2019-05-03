@@ -1,0 +1,219 @@
+<?php
+/**
+*
+* Do not edit or add to this file if you wish to upgrade the module to newer
+* versions in the future. If you wish to customize the module for your
+* needs please contact us to https://www.milople.com/contact-us.html
+*
+* @category    Ecommerce
+* @package     Milople_Requestforquote
+* @copyright   Copyright (c) 2017 Milople Technologies Pvt. Ltd. All Rights Reserved.
+* @url         https://www.milople.com/magento2-extension/request-for-quote-m2.html
+*
+**/
+$item = $block->getItem();
+$product = $item->getProduct();
+?>
+<?php
+$_productCollection = $block->getLoadedProductCollection();
+$_helper = $this->helper('Magento\Catalog\Helper\Output');
+$requestforquote_helper=$this->helper('Milople\Requestforquote\Helper\Requestforquote');
+$enquiry_form_title = $this->helper('Milople\Requestforquote\Helper\Data')->getConfig('requestforquote/tag_setting_group/enquiry_form_title');
+$countryCollection = $requestforquote_helper->getCountries();
+$baseurl = $this->helper('Milople\Requestforquote\Helper\Data')->getBaseUrl() . 'requestforquote/index/save';
+$tnc = $this->helper('Milople\Requestforquote\Helper\Data')->getConfig('requestforquote/tag_setting_group/show_terms_and_conditions');
+?>
+<div id="popup-mpdal" style="display:none;width:90%">
+	<form id="enquiry_form">
+		<input type="text" name="productname" id="pname" style="display:none;"/>
+		<input type="text" name="producturl" id="purl" style="display:none;"/>
+		Name:
+		<input type="text" name="firstname" id="name" required/><br><br>
+		E-mail:
+		<input type="email" name="email" id="email" required/><br><br>
+		<label for="country_name">Country : </label>
+		<input id="country_name" name="country_name" type="text" list="country" required/><br><br>
+			<datalist id="country">
+				<?php foreach( $countryCollection as $label ): ?>
+					<?php if($label['label']==' '): ?>
+						<?php continue; ?>
+					<?php endif; ?>
+					<option value="<?php print_r($label['label']);?>">
+				<?php endforeach; ?>
+			</datalist>
+		Phone Number:<br>
+		<input type="number" name="phone_number" id="phone"><br><br>
+		Description:<br>
+		<textarea name="description" id="description" required/></textarea><br>
+		<?php if($tnc==true):?>
+			<input type="checkbox" id="chk_tnc"name="termsandconditions" class="checkbox_style" required/> I agree to the terms and conditions
+		<?php endif; ?>
+	</form>
+</div>
+<?php foreach ($block->getChildNames() as $childName): ?>
+    <?php /* @escapeNotVerified */ echo $block->getLayout()->renderElement($childName, false); ?>
+<?php endforeach;?>
+<div class="box-tocart">
+	<?php $requestforquote_helper=$this->helper('Milople\Requestforquote\Helper\Requestforquote');?>
+	<?php $enableflag = $this->helper('Milople\Requestforquote\Helper\Data')->getConfig('requestforquote/license_status_group/status'); ?>							
+	<?php $product_requestforquote=$requestforquote_helper->isProductEnabledForrequestforquote($product->getId()); ?>
+    <fieldset class="fieldset">
+    <?php if ($item->canHaveQty() && $product->isVisibleInSiteVisibility()): ?>
+        <div class="field qty">
+            <label class="label" for="qty[<?php /* @escapeNotVerified */ echo $item->getId() ?>]"><span><?php /* @escapeNotVerified */ echo __('Qty') ?></span></label>
+            <div class="control">
+                <input type="number" data-role="qty" id="qty[<?php /* @escapeNotVerified */ echo $item->getId() ?>]" class="input-text qty" data-validate="{'required-number':true,'validate-greater-than-zero':true}"
+               name="qty[<?php /* @escapeNotVerified */ echo $item->getId() ?>]" value="<?php /* @escapeNotVerified */ echo $block->getAddToCartQty($item) * 1 ?>">
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php if ($product->isSaleable()): ?>
+	<?php $enable_enquire_button = $this->helper('Milople\Requestforquote\Helper\Data')->getConfig('requestforquote/tag_setting_group/show_enquiry_button'); ?>
+	<?php $textcolor = $this->helper('Milople\Requestforquote\Helper\Data')->getConfig('requestforquote/tag_setting_group/color'); ?>
+	<!--call for price condition-->
+	<?php if(($product_requestforquote=='No' and $enableflag =='specific_products' and $requestforquote_helper->isValidCustomer()) || ($enableflag != 'disable' and $requestforquote_helper->isValidCustomer() == false) || $enableflag == 'disable'):?>
+		<div class="product-item-actions">
+			<div class="actions-primary">
+				<button 	data-rfq='<?php echo $product_requestforquote ?>' type="button" data-role="tocart" data-post='<?php /* @escapeNotVerified */ echo $block->getItemAddToCartParams($item)?>' title="<?php /* @escapeNotVerified */ echo __('Add to Cart') ?>" data-item-id="<?php /* @escapeNotVerified */ echo $item->getId()?>" class="action tocart primary">
+                <span><?php /* @escapeNotVerified */ echo __('Add to Cart') ?></span>
+				</button>
+			</div>
+		</div>
+	<?php else: ?>
+		<form>                                    
+			<button type="button"
+                    title="<?php echo $block->escapeHtml(__('Call for Price')); ?>"
+                    class="action tocart primary requestforquote_button">
+                    <span class="text_style"><?php /* @escapeNotVerified */ echo $this->helper('Milople\Requestforquote\Helper\Data')->getConfig('requestforquote/tag_setting_group/call_us_on_label'); ?></span>
+            </button>
+			<!--Show Enquire Now Condition-->
+			<?php if($enable_enquire_button == true):?>
+				<div>
+					<button type="button"
+							id="enquire_now_btn"
+							title="<?php echo $block->escapeHtml(__('Enquire Now')); ?>"
+							data-name="<?php echo $item->getName() ?>"
+							url="<?php echo $item->getProductUrl(); ?>"
+							class="action tocart primary enquire_now_btn">
+							<span><?php /* @escapeNotVerified */ echo $this->helper('Milople\Requestforquote\Helper\Data')->getConfig('requestforquote/tag_setting_group/enquire_now_button_text'); ?></span>
+					</button>
+				</div>
+			<?php endif; ?>
+        </form>
+	<?php endif; ?>
+    <?php else: ?>
+        <?php if ($product->getIsSalable()): ?>
+            <p class="available stock" title="<?php /* @escapeNotVerified */ echo __('Availability') ?>">
+                <span><?php /* @escapeNotVerified */ echo __('In stock') ?></span>
+            </p>
+        <?php else: ?>
+            <p class="unavailable stock" title="<?php /* @escapeNotVerified */ echo __('Availability') ?>">
+                <span><?php /* @escapeNotVerified */ echo __('Out of stock') ?></span>
+            </p>
+        <?php endif; ?>
+    <?php endif; ?>
+    </fieldset>
+</div>
+<script>
+    require(
+        [
+            'jquery',
+            'Magento_Ui/js/modal/modal'
+        ],
+        function(
+            $,
+            modal
+        ) {
+            var options = {
+                type: 'popup',
+                responsive: true,
+                innerScroll: true,
+                title: '<?php echo $enquiry_form_title;?> for <?php /* @escapeNotVerified */ echo $_helper->productAttribute($item, $item->getName(), 'name'); ?>',
+                buttons: [{
+					text: $.mage.__('Clear'),
+                    class: '',
+                    click: function () {
+						document.getElementById("name").value='';
+						document.getElementById("email").value='';
+						document.getElementById("country_name").value='';
+						document.getElementById("phone").value='';
+						document.getElementById("description").value='';
+					}						
+				},{
+                    text: $.mage.__('Submit'),
+                    class: '',
+                    click: function () {
+						var formData=new FormData(jQuery('#enquiry_form')[0]);
+						var name=document.getElementById("name").value;
+						var email=document.getElementById("email").value;
+						var country=document.getElementById("country_name").value;
+						var phone=document.getElementById("phone").value;
+						var description=document.getElementById("description").value;
+						var done;
+						formData.append("name",name );
+						formData.append("email", email);
+						formData.append("country", country);
+						formData.append("phone", phone);
+						formData.append("description", description);
+						formData.append("pname",document.getElementById("pname").value);
+						formData.append("purl",document.getElementById("purl").value);
+						if(<?php echo $tnc;?>==true)
+						{
+							var chk_tnc=document.getElementById("chk_tnc").checked;;
+							if(chk_tnc==true)agree='done';
+						}
+						if(<?php echo $tnc;?>==false)
+						{
+							agree='done';
+						}
+						if(name!='' && email!='' && country!='' && description!='' && agree=='done'){
+						$.ajax({
+							url: "<?php echo $baseurl ?>",
+							data:formData ,
+							showLoader: true,
+							cache: false,
+							type: 'post',
+							processData: false,
+							contentType: false,
+							}).done(function(data){
+								$( "aside" ).removeClass( "_show" );
+								$("div.modals-overlay").remove();
+								document.getElementById("description").value='';
+						});
+						agree=null;
+						this.closeModal();		
+						}
+						
+                    }
+                }]
+            };
+
+            var popup = modal(options, $('#popup-mpdal'));
+            $(".enquire_now_btn").on('click',function(){
+				var product_name_popup = $(this).attr('data-name');
+				var product_url = $(this).attr('url');
+                $("#popup-mpdal").modal("openModal");
+				document.getElementById("pname").value=product_name_popup;
+				document.getElementById("purl").value=product_url;
+				jQuery(".modal-title").html("<?php echo $enquiry_form_title;?>" + " for "+product_name_popup);
+            });
+
+        }
+    );
+</script>
+<style>
+.requestforquote_button{
+	background-color:white !important;
+	cursor:initial !important;
+	margin-top: 3%;
+	margin-bottom: 3% !important;
+}
+.text_style{
+	color:<?php echo   $textcolor ?>;
+	word-wrap: break-word;
+	font-size: 13px;
+}
+.checkbox_style{
+	margin-top: 5px !important;
+}
+</style>

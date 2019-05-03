@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "56d51ca3fc0386e0af6ea2945380b190",
+    "content-hash": "a27e6ebebd8a3f0a014ffd141df90ec7",
     "packages": [
         {
             "name": "amzn/amazon-pay-and-login-magento-2-module",
@@ -217,11 +217,11 @@
         },
         {
             "name": "auctane/api",
-            "version": "2.0.19",
-            "dist": {
-                "type": "zip",
-                "url": "https://repo.magento.com/archives/auctane/api/auctane-api-2.0.19.0.zip",
-                "shasum": "52f47081f9d0cbfa1461dd3423a60635b8fe3647"
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:itecedor/CustomShipstation.git",
+                "reference": "4b37872bea4f5322d6cd03f8e44f8a548c09e599"
             },
             "type": "magento2-module",
             "autoload": {
@@ -236,7 +236,8 @@
                 "OSL-3.0",
                 "AFL-3.0"
             ],
-            "description": "ShipStation is a web-based shipping solution that is integrated with the Magento API for retrieving order information and updating shipping details."
+            "description": "ShipStation is a web-based shipping solution that is integrated with the Magento API for retrieving order information and updating shipping details.",
+            "time": "2019-04-05T00:40:39+00:00"
         },
         {
             "name": "bacon/bacon-qr-code",
@@ -443,16 +444,16 @@
         },
         {
             "name": "colinmollenhour/cache-backend-file",
-            "version": "v1.4.4",
+            "version": "v1.4.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/colinmollenhour/Cm_Cache_Backend_File.git",
-                "reference": "184171cc79933a828c3f9b1a1054724cea22a216"
+                "reference": "03c7d4c0f43b2de1b559a3527d18ff697d306544"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/colinmollenhour/Cm_Cache_Backend_File/zipball/184171cc79933a828c3f9b1a1054724cea22a216",
-                "reference": "184171cc79933a828c3f9b1a1054724cea22a216",
+                "url": "https://api.github.com/repos/colinmollenhour/Cm_Cache_Backend_File/zipball/03c7d4c0f43b2de1b559a3527d18ff697d306544",
+                "reference": "03c7d4c0f43b2de1b559a3527d18ff697d306544",
                 "shasum": ""
             },
             "type": "magento-module",
@@ -472,7 +473,7 @@
             ],
             "description": "The stock Zend_Cache_Backend_File backend has extremely poor performance for cleaning by tags making it become unusable as the number of cached items increases. This backend makes many changes resulting in a huge performance boost, especially for tag cleaning.",
             "homepage": "https://github.com/colinmollenhour/Cm_Cache_Backend_File",
-            "time": "2018-04-05T15:28:43+00:00"
+            "time": "2019-04-18T21:54:31+00:00"
         },
         {
             "name": "colinmollenhour/cache-backend-redis",
@@ -645,16 +646,16 @@
         },
         {
             "name": "composer/composer",
-            "version": "1.8.4",
+            "version": "1.8.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "bc364c2480c17941e2135cfc568fa41794392534"
+                "reference": "949b116f9e7d98d8d276594fed74b580d125c0e6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/bc364c2480c17941e2135cfc568fa41794392534",
-                "reference": "bc364c2480c17941e2135cfc568fa41794392534",
+                "url": "https://api.github.com/repos/composer/composer/zipball/949b116f9e7d98d8d276594fed74b580d125c0e6",
+                "reference": "949b116f9e7d98d8d276594fed74b580d125c0e6",
                 "shasum": ""
             },
             "require": {
@@ -721,7 +722,7 @@
                 "dependency",
                 "package"
             ],
-            "time": "2019-02-11T09:52:10+00:00"
+            "time": "2019-04-09T15:46:48+00:00"
         },
         {
             "name": "composer/semver",
@@ -974,9 +975,15 @@
         {
             "name": "dotmailer/dotmailer-magento2-extension",
             "version": "3.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dotmailer/dotmailer-magento2-extension.git",
+                "reference": "500747d3541e2e8b3ba9b2408f7804aee8333b34"
+            },
             "dist": {
                 "type": "zip",
-                "url": "https://repo.magento.com/archives/dotmailer/dotmailer-magento2-extension/dotmailer-dotmailer-magento2-extension-3.1.1.0.zip",
+                "url": "https://api.github.com/repos/dotmailer/dotmailer-magento2-extension/zipball/500747d3541e2e8b3ba9b2408f7804aee8333b34",
+                "reference": "500747d3541e2e8b3ba9b2408f7804aee8333b34",
                 "shasum": "2ede8827f7faacf72f6bc2004f9d4325f61cbd3f"
             },
             "require": {
@@ -1041,17 +1048,62 @@
             "description": "dotmailer integration for magento 2"
         },
         {
-            "name": "elasticsearch/elasticsearch",
-            "version": "v6.1.0",
+            "name": "ebizmarts/mailchimp-lib",
+            "version": "3.0.30",
             "source": {
                 "type": "git",
-                "url": "https://github.com/elastic/elasticsearch-php.git",
-                "reference": "b237a37b2cdf23a5a17fd3576cdea771394ad00d"
+                "url": "https://github.com/ebizmarts/mailchimp-lib.git",
+                "reference": "293960203ff1d834af5b2f2726f03063494a2265"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elastic/elasticsearch-php/zipball/b237a37b2cdf23a5a17fd3576cdea771394ad00d",
-                "reference": "b237a37b2cdf23a5a17fd3576cdea771394ad00d",
+                "url": "https://api.github.com/repos/ebizmarts/mailchimp-lib/zipball/293960203ff1d834af5b2f2726f03063494a2265",
+                "reference": "293960203ff1d834af5b2f2726f03063494a2265",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "php": ">=5.2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Mailchimp": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ebizmarts Corp.",
+                    "email": "info@ebizmarts.com",
+                    "homepage": "http://ebizmarts.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "API client library for the MailChimp",
+            "homepage": "https://github.com/ebizmarts/mailchimp-lib",
+            "keywords": [
+                "api",
+                "email",
+                "mailchimp"
+            ],
+            "time": "2019-03-07T19:47:51+00:00"
+        },
+        {
+            "name": "elasticsearch/elasticsearch",
+            "version": "v6.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/elastic/elasticsearch-php.git",
+                "reference": "8bde3f3b821361ec75e08a3746231d87230a2d3a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/elastic/elasticsearch-php/zipball/8bde3f3b821361ec75e08a3746231d87230a2d3a",
+                "reference": "8bde3f3b821361ec75e08a3746231d87230a2d3a",
                 "shasum": ""
             },
             "require": {
@@ -1061,12 +1113,12 @@
                 "psr/log": "~1.0"
             },
             "require-dev": {
-                "cpliakas/git-wrapper": "~1.0",
+                "cpliakas/git-wrapper": "^1.7 || ^2.1",
                 "doctrine/inflector": "^1.1",
-                "mockery/mockery": "0.9.4",
-                "phpstan/phpstan-shim": "0.8.3",
-                "phpunit/phpunit": "6.3.0",
-                "squizlabs/php_codesniffer": "3.0.2",
+                "mockery/mockery": "^1.2",
+                "phpstan/phpstan-shim": "^0.9 || ^0.11",
+                "phpunit/phpunit": "^5.7 || ^6.5",
+                "squizlabs/php_codesniffer": "^3.4",
                 "symfony/finder": "^2.8",
                 "symfony/yaml": "^2.8"
             },
@@ -1087,6 +1139,9 @@
             "authors": [
                 {
                     "name": "Zachary Tong"
+                },
+                {
+                    "name": "Enrico Zimuel"
                 }
             ],
             "description": "PHP Client for Elasticsearch",
@@ -1095,7 +1150,7 @@
                 "elasticsearch",
                 "search"
             ],
-            "time": "2019-01-08T18:53:46+00:00"
+            "time": "2019-04-29T15:14:22+00:00"
         },
         {
             "name": "endroid/qr-code",
@@ -1890,17 +1945,61 @@
             "description": "Klarna Order Management Magento 2 Extension"
         },
         {
-            "name": "magenest/core",
-            "version": "1.0.0",
+            "name": "magemojo/m2-ce-cron",
+            "version": "1.2.8-stable",
             "source": {
                 "type": "git",
-                "url": "https://github.com/magenest-dev/module-core.git",
-                "reference": "30ead25de1856be16e0bf12ca48f4d44665039c2"
+                "url": "https://github.com/magemojo/m2-ce-cron.git",
+                "reference": "bf6df59f2d49d9d6568c09cce46ebbc891f7c6c7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/magenest-dev/module-core/zipball/30ead25de1856be16e0bf12ca48f4d44665039c2",
-                "reference": "30ead25de1856be16e0bf12ca48f4d44665039c2",
+                "url": "https://api.github.com/repos/magemojo/m2-ce-cron/zipball/bf6df59f2d49d9d6568c09cce46ebbc891f7c6c7",
+                "reference": "bf6df59f2d49d9d6568c09cce46ebbc891f7c6c7",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0.0"
+            },
+            "type": "magento2-module",
+            "autoload": {
+                "files": [
+                    "registration.php"
+                ],
+                "psr-4": {
+                    "MageMojo\\Cron\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "MageMojo",
+                    "homepage": "https://github.com/magemojo/"
+                }
+            ],
+            "description": "Replacement package for Magento 2 Cron Functionality",
+            "homepage": "https://github.com/magemojo/",
+            "keywords": [
+                "cron",
+                "magento2"
+            ],
+            "time": "2019-04-12T17:03:34+00:00"
+        },
+        {
+            "name": "magenest/core",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magenest-dev/module-core.git",
+                "reference": "c108864f287b0234fd5d56206b1fde2134dd0d62"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/magenest-dev/module-core/zipball/c108864f287b0234fd5d56206b1fde2134dd0d62",
+                "reference": "c108864f287b0234fd5d56206b1fde2134dd0d62",
                 "shasum": ""
             },
             "type": "magento2-module",
@@ -1914,10 +2013,10 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "Commercial"
+                "OSL-3.0"
             ],
             "description": "Magenest Core",
-            "time": "2018-10-16T09:55:15+00:00"
+            "time": "2019-04-23T03:33:33+00:00"
         },
         {
             "name": "magenest/module-stripe",
@@ -9982,6 +10081,48 @@
             "time": "2018-08-09T15:03:40+00:00"
         },
         {
+            "name": "mailchimp/mc-magento2",
+            "version": "102.3.34",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mailchimp/mc-magento2.git",
+                "reference": "b2bb83bfe95b1118e4f2e06b3933e7317fee1008"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mailchimp/mc-magento2/zipball/b2bb83bfe95b1118e4f2e06b3933e7317fee1008",
+                "reference": "b2bb83bfe95b1118e4f2e06b3933e7317fee1008",
+                "shasum": ""
+            },
+            "require": {
+                "ebizmarts/mailchimp-lib": ">=3.0.27",
+                "magento/framework": "102.0.*"
+            },
+            "type": "magento2-module",
+            "autoload": {
+                "psr-4": {
+                    "Ebizmarts\\MailChimp\\": ""
+                },
+                "files": [
+                    "registration.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "OSL-3.0",
+                "AFL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Ebizmarts Corp",
+                    "email": "mailchimp@ebizmarts-desk.zendesk.com",
+                    "homepage": "http://ebizmarts.com"
+                }
+            ],
+            "description": "Connect MailChimp with Magento",
+            "time": "2019-03-20T14:32:37+00:00"
+        },
+        {
             "name": "monolog/monolog",
             "version": "1.24.0",
             "source": {
@@ -11190,16 +11331,16 @@
         },
         {
             "name": "stripe/stripe-php",
-            "version": "v6.31.3",
+            "version": "v6.34.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/stripe/stripe-php.git",
-                "reference": "d14f02d603c47824d7acaf88491195e3f199408d"
+                "reference": "8f74cbe130f962d96d4ba92e75a44396a40cf41a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/stripe/stripe-php/zipball/d14f02d603c47824d7acaf88491195e3f199408d",
-                "reference": "d14f02d603c47824d7acaf88491195e3f199408d",
+                "url": "https://api.github.com/repos/stripe/stripe-php/zipball/8f74cbe130f962d96d4ba92e75a44396a40cf41a",
+                "reference": "8f74cbe130f962d96d4ba92e75a44396a40cf41a",
                 "shasum": ""
             },
             "require": {
@@ -11242,11 +11383,11 @@
                 "payment processing",
                 "stripe"
             ],
-            "time": "2019-04-02T18:31:38+00:00"
+            "time": "2019-05-01T18:14:32+00:00"
         },
         {
             "name": "symfony/console",
-            "version": "v4.1.11",
+            "version": "v4.1.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
@@ -11317,7 +11458,7 @@
         },
         {
             "name": "symfony/css-selector",
-            "version": "v4.2.5",
+            "version": "v4.2.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/css-selector.git",
@@ -11370,7 +11511,7 @@
         },
         {
             "name": "symfony/event-dispatcher",
-            "version": "v4.1.11",
+            "version": "v4.1.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/event-dispatcher.git",
@@ -11433,7 +11574,7 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v4.2.5",
+            "version": "v4.2.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
@@ -11483,16 +11624,16 @@
         },
         {
             "name": "symfony/finder",
-            "version": "v4.2.5",
+            "version": "v4.2.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/finder.git",
-                "reference": "267b7002c1b70ea80db0833c3afe05f0fbde580a"
+                "reference": "e45135658bd6c14b61850bf131c4f09a55133f69"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/finder/zipball/267b7002c1b70ea80db0833c3afe05f0fbde580a",
-                "reference": "267b7002c1b70ea80db0833c3afe05f0fbde580a",
+                "url": "https://api.github.com/repos/symfony/finder/zipball/e45135658bd6c14b61850bf131c4f09a55133f69",
+                "reference": "e45135658bd6c14b61850bf131c4f09a55133f69",
                 "shasum": ""
             },
             "require": {
@@ -11528,11 +11669,11 @@
             ],
             "description": "Symfony Finder Component",
             "homepage": "https://symfony.com",
-            "time": "2019-02-23T15:42:05+00:00"
+            "time": "2019-04-06T13:51:08+00:00"
         },
         {
             "name": "symfony/inflector",
-            "version": "v4.2.5",
+            "version": "v4.2.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/inflector.git",
@@ -11590,16 +11731,16 @@
         },
         {
             "name": "symfony/options-resolver",
-            "version": "v4.2.5",
+            "version": "v4.2.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/options-resolver.git",
-                "reference": "3896e5a7d06fd15fa4947694c8dcdd371ff147d1"
+                "reference": "fd4a5f27b7cd085b489247b9890ebca9f3e10044"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/options-resolver/zipball/3896e5a7d06fd15fa4947694c8dcdd371ff147d1",
-                "reference": "3896e5a7d06fd15fa4947694c8dcdd371ff147d1",
+                "url": "https://api.github.com/repos/symfony/options-resolver/zipball/fd4a5f27b7cd085b489247b9890ebca9f3e10044",
+                "reference": "fd4a5f27b7cd085b489247b9890ebca9f3e10044",
                 "shasum": ""
             },
             "require": {
@@ -11640,7 +11781,7 @@
                 "configuration",
                 "options"
             ],
-            "time": "2019-02-23T15:17:42+00:00"
+            "time": "2019-04-10T16:20:36+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -11869,7 +12010,7 @@
         },
         {
             "name": "symfony/process",
-            "version": "v4.1.11",
+            "version": "v4.1.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
@@ -11918,7 +12059,7 @@
         },
         {
             "name": "symfony/property-access",
-            "version": "v4.2.5",
+            "version": "v4.2.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/property-access.git",
@@ -11985,11 +12126,16 @@
         },
         {
             "name": "taxjar/module-taxjar",
-            "version": "1.2.0",
+            "version": "1.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/taxjar/taxjar-magento2-extension.git",
+                "reference": "82691bd3f8724b2f9fbad4c98b7ef5c8efa1a482"
+            },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/taxjar/taxjar-magento2-extension/zipball/81cb4063af444670e52bded13de5d0b663e1943d",
-                "reference": "81cb4063af444670e52bded13de5d0b663e1943d",
+                "url": "https://api.github.com/repos/taxjar/taxjar-magento2-extension/zipball/82691bd3f8724b2f9fbad4c98b7ef5c8efa1a482",
+                "reference": "82691bd3f8724b2f9fbad4c98b7ef5c8efa1a482",
                 "shasum": ""
             },
             "require": {
@@ -12009,7 +12155,7 @@
                 "OSL-3.0"
             ],
             "description": "TaxJar Sales Tax Module for Magento 2",
-            "time": "2019-01-25T00:30:13+00:00"
+            "time": "2019-02-19T23:07:52+00:00"
         },
         {
             "name": "tedivm/jshrink",
@@ -14216,16 +14362,16 @@
         },
         {
             "name": "zendframework/zend-soap",
-            "version": "2.7.0",
+            "version": "2.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/zendframework/zend-soap.git",
-                "reference": "af03c32f0db2b899b3df8cfe29aeb2b49857d284"
+                "reference": "8762d79efa220d82529c43ce08d70554146be645"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/zendframework/zend-soap/zipball/af03c32f0db2b899b3df8cfe29aeb2b49857d284",
-                "reference": "af03c32f0db2b899b3df8cfe29aeb2b49857d284",
+                "url": "https://api.github.com/repos/zendframework/zend-soap/zipball/8762d79efa220d82529c43ce08d70554146be645",
+                "reference": "8762d79efa220d82529c43ce08d70554146be645",
                 "shasum": ""
             },
             "require": {
@@ -14265,7 +14411,7 @@
                 "soap",
                 "zf2"
             ],
-            "time": "2018-01-29T17:51:26+00:00"
+            "time": "2019-04-30T16:45:35+00:00"
         },
         {
             "name": "zendframework/zend-stdlib",
@@ -14917,16 +15063,16 @@
         },
         {
             "name": "myclabs/deep-copy",
-            "version": "1.8.1",
+            "version": "1.9.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/myclabs/DeepCopy.git",
-                "reference": "3e01bdad3e18354c3dce54466b7fbe33a9f9f7f8"
+                "reference": "e6828efaba2c9b79f4499dae1d66ef8bfa7b2b72"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/3e01bdad3e18354c3dce54466b7fbe33a9f9f7f8",
-                "reference": "3e01bdad3e18354c3dce54466b7fbe33a9f9f7f8",
+                "url": "https://api.github.com/repos/myclabs/DeepCopy/zipball/e6828efaba2c9b79f4499dae1d66ef8bfa7b2b72",
+                "reference": "e6828efaba2c9b79f4499dae1d66ef8bfa7b2b72",
                 "shasum": ""
             },
             "require": {
@@ -14961,7 +15107,7 @@
                 "object",
                 "object graph"
             ],
-            "time": "2018-06-11T23:09:50+00:00"
+            "time": "2019-04-07T13:18:21+00:00"
         },
         {
             "name": "pdepend/pdepend",
@@ -15212,16 +15358,16 @@
         },
         {
             "name": "phpdocumentor/reflection-docblock",
-            "version": "4.3.0",
+            "version": "4.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpDocumentor/ReflectionDocBlock.git",
-                "reference": "94fd0001232e47129dd3504189fa1c7225010d08"
+                "reference": "bdd9f737ebc2a01c06ea7ff4308ec6697db9b53c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/94fd0001232e47129dd3504189fa1c7225010d08",
-                "reference": "94fd0001232e47129dd3504189fa1c7225010d08",
+                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/bdd9f737ebc2a01c06ea7ff4308ec6697db9b53c",
+                "reference": "bdd9f737ebc2a01c06ea7ff4308ec6697db9b53c",
                 "shasum": ""
             },
             "require": {
@@ -15259,7 +15405,7 @@
                 }
             ],
             "description": "With this component, a library can provide support for annotations via DocBlocks or otherwise retrieve information that is embedded in a DocBlock.",
-            "time": "2017-11-30T07:14:17+00:00"
+            "time": "2019-04-30T17:48:53+00:00"
         },
         {
             "name": "phpdocumentor/type-resolver",
@@ -16531,7 +16677,7 @@
         },
         {
             "name": "symfony/config",
-            "version": "v4.2.5",
+            "version": "v4.2.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/config.git",
@@ -16662,16 +16808,16 @@
         },
         {
             "name": "symfony/dependency-injection",
-            "version": "v4.2.5",
+            "version": "v4.2.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dependency-injection.git",
-                "reference": "1806e43ff6bff57398d33b326cd753a12d9f434f"
+                "reference": "d161c0c8bc77ad6fdb8f5083b9e34c3015d43eb1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/1806e43ff6bff57398d33b326cd753a12d9f434f",
-                "reference": "1806e43ff6bff57398d33b326cd753a12d9f434f",
+                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/d161c0c8bc77ad6fdb8f5083b9e34c3015d43eb1",
+                "reference": "d161c0c8bc77ad6fdb8f5083b9e34c3015d43eb1",
                 "shasum": ""
             },
             "require": {
@@ -16731,7 +16877,7 @@
             ],
             "description": "Symfony DependencyInjection Component",
             "homepage": "https://symfony.com",
-            "time": "2019-03-30T15:58:42+00:00"
+            "time": "2019-04-27T11:48:17+00:00"
         },
         {
             "name": "symfony/polyfill-php70",
@@ -16849,7 +16995,7 @@
         },
         {
             "name": "symfony/stopwatch",
-            "version": "v4.2.5",
+            "version": "v4.2.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/stopwatch.git",
@@ -17033,6 +17179,7 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "composer/composer": 15,
+        "auctane/api": 20,
         "phpmd/phpmd": 0
     },
     "prefer-stable": false,

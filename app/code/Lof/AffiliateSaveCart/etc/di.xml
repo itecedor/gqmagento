@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Lof\AffiliateSaveCart\Api\AffiliateSaveCartRepositoryInterface" type="Lof\AffiliateSaveCart\Model\AffiliateSaveCartRepository" />
+    <preference for="Lof\AffiliateSaveCart\Api\Data\AffiliateSaveCartInterface" type="Lof\AffiliateSaveCart\Model\AffiliateSaveCart" />
+    <type name="Magento\Quote\Api\CartRepositoryInterface">
+        <plugin name="saveCart_cartRepository" type="Lof\AffiliateSaveCart\Plugin\Quote\Api\CartRepository" />
+    </type>
+    <type name="Magento\Quote\Model\QuoteRepository\SaveHandler">
+        <plugin name="saveCart_cartRepository_saveHandler" type="Lof\AffiliateSaveCart\Plugin\Quote\Model\QuoteRepository\SaveHandler" />
+    </type>
+    <type name="Magento\Checkout\Model\Cart">
+        <plugin name="saveCart_checkout_model_cart" type="Lof\AffiliateSaveCart\Plugin\Checkout\Model\Cart" />
+    </type>
+    <type name="Magento\Quote\Model\ResourceModel\Quote">
+        <plugin name="saveCart_quote_resourcemodel_quote" type="Lof\AffiliateSaveCart\Plugin\Quote\Model\ResourceModel\Quote" />
+    </type>
+    <type name="Magento\Checkout\Block\Cart\AbstractCart">
+        <plugin name="saveCart_checkout_block_cart_abstractCart" type="Lof\AffiliateSaveCart\Plugin\Checkout\Block\Cart\AbstractCart" />
+    </type>
+    <!--<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">-->
+        <!--<arguments>-->
+            <!--<argument name="collections" xsi:type="array">-->
+                <!--<item name="affiliatesavecart_quote_grid_data_source" xsi:type="string">Lof\AffiliateSaveCart\Model\ResourceModel\AffiliateSaveCart\Grid\Collection</item>-->
+            <!--</argument>-->
+        <!--</arguments>-->
+    <!--</type>-->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="affiliatesavecart_savecart_listing_data_source" xsi:type="string">Lof\AffiliateSaveCart\Model\ResourceModel\AffiliateSaveCart\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Lof\AffiliateSaveCart\Model\ResourceModel\AffiliateSaveCart\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">lof_affiliatesavecart_savecart</argument>
+            <argument name="eventPrefix" xsi:type="string">affiliatesavecart_savecart_grid_collection</argument>
+            <argument name="eventObject" xsi:type="string">affiliatesavecart_grid_collection</argument>
+            <argument name="resourceModel" xsi:type="string">Lof\AffiliateSaveCart\Model\ResourceModel\AffiliateSaveCart</argument>
+        </arguments>
+    </type>
+    <virtualType name="AffiliateSaveCartGridDataProvider" type="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider">
+        <arguments>
+            <argument name="collection" xsi:type="object" shared="false">Lof\AffiliateSaveCart\Model\ResourceModel\AffiliateSaveCart\Collection</argument>
+            <argument name="filterPool" xsi:type="object" shared="false">AffiliateSaveCartGirdFilterPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Lof\AffiliateSaveCart\Model\ResourceModel\AffiliateSaveCart\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">lof_affiliatesavecart_savecart</argument>
+            <argument name="resourceModel" xsi:type="string">Lof\AffiliateSaveCart\Model\ResourceModel\AffiliateSaveCart\Collection</argument>
+        </arguments>
+    </virtualType>
+</config>

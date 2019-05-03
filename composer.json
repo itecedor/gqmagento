@@ -15,10 +15,12 @@
         "apptrian/facebook-pixel": "2.2.2",
         "magenest/module-stripe": "100.5.7",
         "msp/recaptcha": "2.0.2",
-        "customshipstation/api": "dev-master"
+	"auctane/api": "dev-master",
+        "mailchimp/mc-magento2": "^102.3",
+        "magemojo/m2-ce-cron": "^1.2"
     },
     "require-dev": {
-        "phpunit/phpunit": "~6.2.0",
+	"phpunit/phpunit": "~6.2.0",
         "squizlabs/php_codesniffer": "3.2.2",
         "phpmd/phpmd": "@stable",
         "pdepend/pdepend": "2.5.2",
@@ -58,7 +60,7 @@
     },
     "minimum-stability": "stable",
     "repositories": {
-        "customshipstation-api": {
+        "auctane-api": {
             "type": "git",
             "url": "git@github.com:itecedor/CustomShipstation.git"
         }
