@@ -8,7 +8,7 @@
                 <model>ITC\StorePickup\Model\Carrier\StorePickup</model>
                 <name>Store Pickup</name>
                 <price>0.00</price>
-                <title>Store Pickup</title>
+                <title>Pickup at 40 W 37th St, NY, NY 10018. IMPORTANT: Use our address as the "ship to" address</title>
                 <handling_type>F</handling_type>
             </storepickup>
         </carriers>
