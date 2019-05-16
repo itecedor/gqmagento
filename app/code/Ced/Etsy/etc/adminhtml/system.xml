@@ -1,0 +1,219 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * CedCommerce
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the End User License Agreement(EULA)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://cedcommerce.com/license-agreement.txt
+ *
+ * @category    Ced
+ * @package     Ced_Etsy
+ * @author      CedCommerce Core Team <connect@cedcommerce.com>
+ * @copyright   Copyright CEDCOMMERCE(http://cedcommerce.com/)
+ * @license     http://cedcommerce.com/license-agreement.txt
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="cedcommerce" translate="label" sortOrder="1">
+            <label>Cedcommerce</label>
+        </tab>
+        <section id="cedcore" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
+            <tab>cedcommerce</tab>
+            <label>Installed Extensions</label>
+            <resource>Ced_Etsy::Etsy</resource>
+            <group id="installed_extensions" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label>Installed Extensions</label>
+                <frontend_model>Ced\Etsy\Block\Extensions</frontend_model>
+            </group>
+        </section>
+        <!-- section start for General Tab in Cedcommerce section -->
+        <section id="ced_general" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label> General Setting</label>
+            <tab>cedcommerce</tab>
+            <resource>Ced_Etsy::Etsy</resource>
+            <group id="feed_group" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Notifications</label>
+                <field id="feeds" translate="label" type="multiselect" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>I'd like to be informed by CedCommerce about:</label>
+                    <source_model>Ced\Etsy\Model\Config\Type</source_model>
+                </field>
+            </group>
+            <group id="extensions_groups" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>CedCommerce Extensions Store</label>
+                <field id="extensions" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                   <frontend_model>Ced\Etsy\Block\Cedcommerce\Store</frontend_model>
+                </field>
+            </group>
+        </section>
+        <!-- section start for General Tab in Cedcommerce section -->
+
+        <!-- section start for Etsy Configuration Tab in Cedcommerce section -->
+        <section id="etsy_config" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Etsy Configuration</label>
+            <tab>cedcommerce</tab>
+            <resource>Ced_Etsy::Etsy</resource>
+            <group id="etsy_setting" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
+                   showInStore="0">
+                <label>Etsy Merchant/Developer Settings</label>
+                <field id="consumer_key" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Etsy Consumer Key</label>
+                    <tooltip>Please enter etsy consumer key</tooltip>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="consumer_secret_key" translate="label" type="text" sortOrder="2" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Consumer Secret Key</label>
+                    <tooltip>Please enter etsy consumer secret key</tooltip>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="access_token" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Access Token</label>
+                    <tooltip>Please enter etsy Access Token</tooltip>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="access_token_secret" translate="label" type="text" sortOrder="6" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Access Token Secret</label>
+                    <tooltip>Please enter etsy Access Token Secret</tooltip>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="user_name" translate="label" type="text" sortOrder="7" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>User Name</label>
+                    <tooltip>Please enter etsy User Name</tooltip>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="shop_name" translate="label" type="text" sortOrder="8" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Shop Name</label>
+                    <tooltip>Please enter etsy Shop Name</tooltip>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="country" translate="label" type="select" sortOrder="9" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Country</label>
+                    <source_model>Ced\Etsy\Model\Config\Country</source_model>
+                </field>
+                <field id="storeid" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Select Store</label>
+                    <source_model>Magento\Config\Model\Config\Source\Store</source_model>
+                </field>
+                <field id="fetch_category" translate="button_label" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <button_label>Fetch Category</button_label>
+                    <frontend_model>Ced\Etsy\Block\Adminhtml\Config\FetchCategory</frontend_model>
+                </field>
+            </group>
+            <group id="product_setting" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1"
+                   showInStore="0">
+                <label>Product Upload Settings</label>
+                <comment>This section is for product details for Etsy shop.</comment>
+                <field id="who_made" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Who Made</label>
+                    <source_model>Ced\Etsy\Model\Config\WhoMade</source_model>
+                </field>
+                <field id="when_made" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>When Made</label>
+                    <source_model>Ced\Etsy\Model\Config\WhenMade</source_model>
+                </field>
+                <field id="state" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>State</label>
+                    <source_model>Ced\Etsy\Model\Config\State</source_model>
+                </field>
+            </group>
+            <!-- <group id="payment_detail" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1"
+                   showInStore="0">
+                <label>Payment Template</label>
+                <comment>This section is for providing Payment Template details for Etsy shop.</comment>
+                <field id="template_name" translate="label" type="text" sortOrder="2" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Payment Template Name</label>
+                </field>
+                <field id="paypal_email" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>PayPal Email Address</label>
+                    <validate>validate-email</validate>
+                </field>
+                <field id="check_payment" translate="label" type="select" sortOrder="4" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Allow Check Payment</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="paypal_payment" translate="label" type="select" sortOrder="5" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Allow PayPal Payment</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="creditcard_payment" translate="label" type="select" sortOrder="6" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Allow Credit Card Payment</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group> -->
+            <group id="shipping_details" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1"
+                   showInStore="0">
+                <label>Shipping Template</label>
+                <comment>Please select shipping template for Etsy.</comment>
+                <field id="shipping_template" translate="label" type="select" sortOrder="1" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Select Shipping Template</label>
+                    <source_model>Ced\Etsy\Model\Config\ShippingTemplate</source_model>
+                </field>
+            </group>
+            <group id="etsy_order" translate="label" type="text" sortOrder="45" showInDefault="1" showInWebsite="1"
+                   showInStore="0">
+                <label>Etsy Order Setting</label>
+                <field id="order_notify_email" translate="label comment" type="text" sortOrder="1" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Order Notification Email</label>
+                    <validate>required-entry</validate>
+                </field>
+            </group>
+        </section>
+        <!-- section end for Etsy Cofiguration Tab in Cedcommerce Tab -->
+
+        <!-- section start for Shipping Methods Tab in Sales Tab -->
+        <section id="carriers" >
+            <group id="shipbyetsy" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Etsy Payment Method(Default)</label>
+                <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Title</label>
+                </field>
+            </group>
+        </section>
+        <!-- section end for Shipping Methods Tab in Sales Tab -->
+
+        <!-- section start for Payment Methods Tab in Sales Tab -->
+        <section id="payment">
+           <group id="paybyetsy" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1"
+                  showInStore="1">
+               <label>Etsy</label>
+               <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                   <label>Enabled</label>
+                   <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+               </field>
+               <field id="title" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                   <label>Title</label>
+               </field>
+               <field id="order_status" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                   <label>New order status</label>
+                   <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+               </field>
+           </group>
+       </section>
+        <!-- section end for Payment Methods Tab in Sales Tab -->
+    </system>
+</config>
