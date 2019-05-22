@@ -18,7 +18,6 @@ if ($minQtyAllowed < 1) {
 
 // non-quote products
 if ($_product->isSaleable() && !$_product->getEnableRequestforquote()): ?>
-
     <div class="box-tocart">
         <div class="fieldset">
             <?php if ($block->shouldRenderQuantity()): ?>
@@ -119,7 +118,7 @@ if ($_product->isSaleable() && !$_product->getEnableRequestforquote()): ?>
 		margin-top: 5px !important;
 }
 </style>
-<?php if ($_product->isSaleable() && $showDropdown == false): ?>
+<?php if ($_product->getEnableRequestforquote()): ?>
 <div class="box-tocart">
     <div class="fieldset">
         <?php if ($block->shouldRenderQuantity()): ?>
