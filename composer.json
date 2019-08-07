@@ -12,12 +12,10 @@
         "composer/composer": "@alpha",
         "taxjar/module-taxjar": "^1.0",
         "apptrian/facebook-pixel": "2.2.2",
-        "magenest/module-stripe": "100.5.7",
         "msp/recaptcha": "2.0.2",
 	      "auctane/api": "dev-master",
         "mailchimp/mc-magento2": "^102.3",
         "magemojo/m2-ce-cron": "^1.2",
-        "inakiabt/etsy-php": "^0.12.1",
         "stripeofficial/stripe-payments": "^2.0"
     },
     "require-dev": {
