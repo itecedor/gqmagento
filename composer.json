@@ -15,8 +15,7 @@
         "msp/recaptcha": "2.0.2",
 	      "auctane/api": "dev-master",
         "mailchimp/mc-magento2": "^102.3",
-        "magemojo/m2-ce-cron": "^1.2",
-        "stripeofficial/stripe-payments": "^2.0"
+        "magemojo/m2-ce-cron": "^1.2"
     },
     "require-dev": {
 	"phpunit/phpunit": "~6.2.0",
