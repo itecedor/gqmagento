@@ -224,6 +224,7 @@ return [
         'Milople_Requestforquote' => 1,
         'POSIMWebExt_EVOLinkerAPI' => 1,
         'POSIMWebExt_WebExtManager' => 1,
+        'StripeIntegration_Payments' => 1,
         'Temando_Shipping' => 0,
         'Taxjar_SalesTax' => 1,
         'Vertex_Tax' => 0
