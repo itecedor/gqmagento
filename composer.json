@@ -8,11 +8,11 @@
         "AFL-3.0"
     ],
     "require": {
-        "magento/product-community-edition": "2.3.1",
+        "magento/product-community-edition": "2.3.2",
         "composer/composer": "@alpha",
         "taxjar/module-taxjar": "^1.0",
-        "apptrian/facebook-pixel": "2.2.2",
-        "msp/recaptcha": "2.0.2",
+        "apptrian/facebook-pixel": "2.2.3",
+        "msp/recaptcha": "2.1.2",
 	      "auctane/api": "dev-master",
         "mailchimp/mc-magento2": "^102.3",
         "magemojo/m2-ce-cron": "^1.2",
@@ -62,6 +62,10 @@
         "auctane-api": {
             "type": "git",
             "url": "git@github.com:itecedor/CustomShipstation.git"
+        },
+        "magento/product-community-edition": {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
         }
     },
     "extra": {
