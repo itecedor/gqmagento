@@ -206,6 +206,7 @@ return [
         'Amazon_Core' => 0,
         'Amazon_Login' => 0,
         'Amazon_Payment' => 0,
+        'Apptrian_FacebookCatalog' => 1,
         'Apptrian_FacebookPixel' => 1,
         'Auctane_Api' => 1,
         'Bss_PreOrder' => 1,
