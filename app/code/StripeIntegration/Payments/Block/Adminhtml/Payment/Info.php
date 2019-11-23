@@ -201,10 +201,6 @@ class Info extends ConfigurableInfo
         {
             $token = $this->helper->cleanToken($this->getMethod()->getLastTransId());
 
-            // Subscriptions will not have a charge ID
-            if (empty($token))
-                return null;
-
             $this->charge = $this->api->retrieveCharge($token);
         }
         catch (\Stripe\Error\Card $e)
@@ -270,7 +266,9 @@ class Info extends ConfigurableInfo
     {
         $charge = $this->getCharge();
 
-        if (isset($charge->source->country))
+        if (isset($charge->payment_method_details->card->country))
+            $country = $charge->payment_method_details->card->country;
+        else if (isset($charge->source->country))
             $country = $charge->source->country;
         else if (isset($charge->source->card->country))
             $country = $charge->source->card->country;

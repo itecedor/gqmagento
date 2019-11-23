@@ -35,32 +35,7 @@ class Fieldset extends \Magento\Config\Block\System\Config\Form\Fieldset
      */
     protected function _getFrontendClass($element)
     {
-        $enabledString = $this->_isPaymentEnabled($element) ? ' enabled' : '';
-        return parent::_getFrontendClass($element) . ' with-button' . $enabledString;
-    }
-
-    /**
-     * Check whether current payment method is enabled
-     *
-     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
-     * @return bool
-     */
-    protected function _isPaymentEnabled($element)
-    {
-        $groupConfig = $element->getGroup();
-        $activityPaths = isset($groupConfig['activity_path']) ? $groupConfig['activity_path'] : [];
-
-        if (!is_array($activityPaths)) {
-            $activityPaths = [$activityPaths];
-        }
-
-        $isPaymentEnabled = false;
-        foreach ($activityPaths as $activityPath) {
-            $isPaymentEnabled = $isPaymentEnabled
-                || (bool)(string)$this->_backendConfig->getConfigDataValue($activityPath);
-        }
-
-        return $isPaymentEnabled;
+        return parent::_getFrontendClass($element) . ' with-button enabled';
     }
 
     /**
@@ -76,17 +51,12 @@ class Fieldset extends \Magento\Config\Block\System\Config\Form\Fieldset
 
         $groupConfig = $element->getGroup();
 
-        $disabledAttributeString = $this->_isPaymentEnabled($element) ? '' : ' disabled="disabled"';
-        $disabledClassString = $this->_isPaymentEnabled($element) ? '' : ' disabled';
         $htmlId = $element->getHtmlId();
         $html .= '<div class="button-container"><button type="button"' .
-            $disabledAttributeString .
             ' class="button action-configure' .
-            (empty($groupConfig['paypal_ec_separate']) ? '' : ' paypal-ec-separate') .
-            $disabledClassString .
             '" id="' .
             $htmlId .
-            '-head" onclick="paypalToggleSolution.call(this, \'' .
+            '-head" onclick="toggleSolution.call(this, \'' .
             $htmlId .
             "', '" .
             $this->getUrl(
@@ -96,17 +66,6 @@ class Fieldset extends \Magento\Config\Block\System\Config\Form\Fieldset
             ) . '</span><span class="state-opened">' . __(
                 'Close'
             ) . '</span></button>';
-
-        if (!empty($groupConfig['more_url'])) {
-            $html .= '<a class="link-more" href="' . $groupConfig['more_url'] . '" target="_blank">' . __(
-                'Learn More'
-            ) . '</a>';
-        }
-        if (!empty($groupConfig['demo_url'])) {
-            $html .= '<a class="link-demo" href="' . $groupConfig['demo_url'] . '" target="_blank">' . __(
-                'View Demo'
-            ) . '</a>';
-        }
 
         $html .= '</div>';
         $html .= '<div class="heading"><strong>' . $element->getLegend() . '</strong>';
@@ -152,7 +111,7 @@ class Fieldset extends \Magento\Config\Block\System\Config\Form\Fieldset
     protected function _getExtraJs($element)
     {
         $script = "require(['jquery', 'prototype'], function(jQuery){
-            window.paypalToggleSolution = function (id, url) {
+            window.toggleSolution = function (id, url) {
                 var doScroll = false;
                 Fieldset.toggleCollapse(id, url);
                 if ($(this).hasClassName(\"open\")) {

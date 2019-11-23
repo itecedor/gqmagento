@@ -5,22 +5,11 @@ $ccType = $block->getInfoData('cc_type');
 $ccExpMonth = $block->getInfoData('cc_exp_month');
 $ccExpYear = $block->getInfoData('cc_exp_year');
 $cards = $block->getCustomerCards();
-$paymentIntent = $this->getPaymentIntent();
-
-$extraClass = $switchSubscriptionHtml = '';
-$switchSubscription = $block->getSwitchSubscriptionBlock();
-if ($switchSubscription)
-{
-  $extraClass = $switchSubscription->extraClass;
-  $switchSubscriptionHtml = $switchSubscription->toHtml();
-}
 
 ?>
 <fieldset id="payment_form_stripe_payments" class="stripe-payments standard-form admin__fieldset indent-target stripe-new" <?php echo $block->hideIfNotBuggy(); ?>>
 
-<?php echo $switchSubscriptionHtml; ?>
-
-<fieldset class="admin__fieldset payment-method stripe-new <?php echo $extraClass; ?> stripe-payments" id="payment_form_stripe_payments_payment">
+<fieldset class="admin__fieldset payment-method stripe-new stripe-payments" id="payment_form_stripe_payments_payment">
 
   <?php if (!empty($cards)): ?>
     <div class="stripe-payments-saved-cards-section" id="saved-cards">
@@ -50,87 +39,7 @@ if ($switchSubscription)
     </div>
   <?php endif; ?>
 
-  <?php if ($this->config->isStripeElementsEnabled()): ?>
-
-    <?php echo $block->getLayout()->createBlock('StripeIntegration\Payments\Block\StripeElements')->toHtml(); ?>
-
-  <?php else: ?>
-
-  <div class="field admin__field _required stripe-new admin-stripe-new">
-    <label class="admin__field-label" for="stripe_payments_cc_owner">
-      <span><?php echo $block->escapeHtml(__('Name on Card')); ?></span>
-    </label>
-    <div class="admin__field-control">
-      <input type="text" id="stripe_payments_cc_owner"
-        <?php if (!$block->config->isStripeJsEnabled()): ?>
-          name="payment[cc_owner]"
-        <?php endif; ?>
-        title="<?php echo $block->escapeHtml(__('Name on Card')); ?>" class="admin__control-text stripe-input"
-        value="<?php /* @noEscape */ echo $block->getInfoData('cc_owner'); ?>" />
-    </div>
-  </div>
-
-  <div class="field-number admin__field _required stripe-new">
-    <label class="admin__field-label" for="stripe_payments_cc_number">
-      <span><?php echo $block->escapeHtml(__('Card Number')); ?></span>
-    </label>
-    <div class="admin__field-control">
-      <input type="text" id="stripe_payments_cc_number"
-      <?php if (!$block->config->isStripeJsEnabled()): ?>
-        name="payment[cc_number]"
-      <?php endif; ?>
-      title="<?php echo $block->escapeHtml(__('Card Number')); ?>" class="admin__control-text stripe-input" value="<?php /* @noEscape */ echo $block->getInfoData('cc_number'); ?>"/>
-    </div>
-  </div>
-
-  <div class="field-date admin__field _required stripe-new">
-    <label class="admin__field-label" for="stripe_payments_expiration_mo">
-      <span><?php echo $block->escapeHtml(__('Expiration Date')); ?></span>
-    </label>
-    <div class="admin__field-control">
-      <select id="stripe_payments_expiration_mo"
-        <?php if (!$block->config->isStripeJsEnabled()): ?>
-          name="payment[cc_exp_month]"
-        <?php endif; ?>
-        class="admin__control-select admin__control-select-month required-entry stripe-input">
-        <?php foreach ($block->getCcMonths() as $k => $v): ?>
-          <option value="<?php echo $block->escapeHtml($k); ?>"
-            <?php if ($k == $ccExpMonth): ?>selected="selected"<?php endif ?>>
-            <?php echo $block->escapeHtml($v); ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-      <select id="stripe_payments_expiration_yr"
-        <?php if (!$block->config->isStripeJsEnabled()): ?>
-          name="payment[cc_exp_year]"
-        <?php endif; ?>
-        class="admin__control-select admin__control-select-year required-entry stripe-input">
-        <?php foreach ($block->getCcYears() as $k => $v): ?>
-          <option value="<?php /* @noEscape */ echo $k ? $block->escapeHtml($k) : '' ?>"
-            <?php if ($k == $ccExpYear): ?>selected="selected"<?php endif ?>>
-            <?php echo $block->escapeHtml($v); ?>
-          </option>
-        <?php endforeach ?>
-      </select>
-    </div>
-  </div>
-
-  <div class="field-number required admin__field _required stripe-new">
-    <label class="admin__field-label" for="stripe_payments_cc_cid">
-      <span><?php echo $block->escapeHtml(__('Card Verification Number')); ?></span>
-    </label>
-    <div class="admin__field-control">
-      <input type="text" title="<?php echo $block->escapeHtml(__('Card Verification Number')); ?>"
-      class="required-entry admin__control-cvn admin__control-text stripe-input"
-      style="max-width: 50px" id="stripe_payments_cc_cid"
-      <?php if (!$block->config->isStripeJsEnabled()): ?>
-        name="payment[cc_cid]"
-      <?php endif; ?>
-      value="<?php /* @noEscape */ echo $block->getInfoData('cc_cid') ?>"/>
-    </div>
-  </div>
-
-  <?php endif; ?>
+  <?php echo $block->getLayout()->createBlock('StripeIntegration\Payments\Block\StripeElements')->toHtml(); ?>
 
   <?php if (!$block->isNewCustomer()): ?>
   <div class="field admin__field stripe-new">
@@ -152,17 +61,11 @@ if ($switchSubscription)
   require(['jquery', 'prototype', 'mage/mage'], function(jQuery, $) {
     jQuery(document).ready(function()
     {
-      var securityMethod = '<?php echo $block->config->getSecurityMethod(); ?>';
       var stripeJsPublishableKey = '<?php echo $block->config->getPublishableKey(); ?>';
-      if (securityMethod > 0)
-      {
-        initStripe(stripeJsPublishableKey, securityMethod);
-        stripe.initAdminStripeJs();
-        stripe.isAdmin = true;
-        <?php if (!empty($paymentIntent)): ?>
-        stripe.paymentIntent = '<?php echo $paymentIntent; ?>';
-        <?php endif; ?>
-      }
+      var stripeJsLocale = '<?php echo $block->config->getStripeJsLocale(); ?>';
+      initStripe({ apiKey: stripeJsPublishableKey, locale: stripeJsLocale });
+      stripe.initAdminStripeJs();
+      stripe.isAdmin = true;
       stripe.initAdminEvents();
     });
   });

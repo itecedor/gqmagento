@@ -52,6 +52,10 @@ define(
             {
                 type: 'stripe_payments_wechat',
                 component: 'StripeIntegration_Payments/js/view/payment/method-renderer/wechat'
+            },
+            {
+                type: 'stripe_payments_fpx',
+                component: 'StripeIntegration_Payments/js/view/payment/method-renderer/fpx'
             }
         );
         // Add view logic here if needed

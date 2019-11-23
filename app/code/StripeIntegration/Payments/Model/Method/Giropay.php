@@ -2,7 +2,7 @@
 
 namespace StripeIntegration\Payments\Model\Method;
 
-class Giropay extends \StripeIntegration\Payments\Model\Method\Method
+class Giropay extends \StripeIntegration\Payments\Model\Method\Api\Sources
 {
     const METHOD_CODE = 'stripe_payments_giropay';
 

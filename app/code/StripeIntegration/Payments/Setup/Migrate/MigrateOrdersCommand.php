@@ -14,8 +14,7 @@ class MigrateOrdersCommand extends Command
         \Magento\Catalog\Model\ResourceModel\Eav\AttributeFactory $attributeFactory,
         \Magento\Eav\Model\ResourceModel\Entity\Attribute\Group\CollectionFactory $groupCollectionFactory,
         \Magento\Eav\Model\AttributeManagement $attributeManagement,
-        \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory,
-        \StripeIntegration\Payments\Helper\Migrate $migrate
+        \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
     ) {
         $this->eavTypeFactory = $eavTypeFactory;
         $this->attributeFactory = $attributeFactory;
@@ -23,8 +22,6 @@ class MigrateOrdersCommand extends Command
         $this->groupCollectionFactory = $groupCollectionFactory;
         $this->attributeManagement = $attributeManagement;
         $this->eavSetupFactory = $eavSetupFactory;
-
-        $this->migrate = $migrate;
 
         parent::__construct();
     }
@@ -38,6 +35,8 @@ class MigrateOrdersCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $this->migrate = $objectManager->create('StripeIntegration\Payments\Helper\Migrate');
         $this->migrate->orders();
     }
 }

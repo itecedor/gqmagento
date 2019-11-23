@@ -58,87 +58,7 @@ if (empty($cards)): ?>
 
 <?php if ($this->verifyBillingAddress()): ?>
 
-  <?php if ($this->config->isStripeElementsEnabled()): ?>
-
-    <?php echo $block->getLayout()->createBlock('StripeIntegration\Payments\Block\StripeElements')->toHtml(); ?>
-
-  <?php else: ?>
-
-    <div class="field required stripe-new">
-      <label for="stripe_payments_cc_owner" class="label">
-        <span><?php echo $block->escapeHtml(__('Name on Card')); ?></span>
-      </label>
-      <div>
-        <input type="text" id="stripe_payments_cc_owner"
-          <?php if (!$block->config->isStripeJsEnabled()): ?>
-            name="payment[cc_owner]"
-          <?php endif; ?>
-          title="<?php echo $block->escapeHtml(__('Name on Card')); ?>" class="stripe-input"
-          value="<?php /* @noEscape */ echo $block->getInfoData('cc_owner'); ?>" />
-      </div>
-    </div>
-
-    <div class="field required stripe-new">
-      <label for="stripe_payments_cc_number" class="label">
-        <span><?php echo $block->escapeHtml(__('Card Number')); ?></span>
-      </label>
-      <div>
-        <input type="text" id="stripe_payments_cc_number"
-        <?php if (!$block->config->isStripeJsEnabled()): ?>
-          name="payment[cc_number]"
-        <?php endif; ?>
-        title="<?php echo $block->escapeHtml(__('Card Number')); ?>" class="stripe-input" value="<?php /* @noEscape */ echo $block->getInfoData('cc_number'); ?>"/>
-      </div>
-    </div>
-
-    <div class="field required stripe-new">
-      <label for="stripe_payments_expiration_mo" class="label">
-        <span><?php echo $block->escapeHtml(__('Expiration Date')); ?></span>
-      </label>
-      <div>
-        <select id="stripe_payments_expiration_mo"
-          <?php if (!$block->config->isStripeJsEnabled()): ?>
-            name="payment[cc_exp_month]"
-          <?php endif; ?>
-          class="required-entry stripe-input">
-          <?php foreach ($block->getCcMonths() as $k => $v): ?>
-            <option value="<?php echo $block->escapeHtml($k); ?>"
-              <?php if ($k == $ccExpMonth): ?>selected="selected"<?php endif ?>>
-              <?php echo $block->escapeHtml($v); ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-        <select id="stripe_payments_expiration_yr"
-          <?php if (!$block->config->isStripeJsEnabled()): ?>
-            name="payment[cc_exp_year]"
-          <?php endif; ?>
-          class="required-entry stripe-input">
-          <?php foreach ($block->getCcYears() as $k => $v): ?>
-            <option value="<?php /* @noEscape */ echo $k ? $block->escapeHtml($k) : '' ?>"
-              <?php if ($k == $ccExpYear): ?>selected="selected"<?php endif ?>>
-              <?php echo $block->escapeHtml($v); ?>
-            </option>
-          <?php endforeach ?>
-        </select>
-      </div>
-    </div>
-
-    <div class="field required stripe-new">
-      <label for="stripe_payments_cc_cid" class="label">
-        <span><?php echo $block->escapeHtml(__('Card Verification Number')); ?></span>
-      </label>
-      <div>
-        <input type="text" title="<?php echo $block->escapeHtml(__('Card Verification Number')); ?>"
-        class="required-entry stripe-input"
-        style="max-width: 50px" id="stripe_payments_cc_cid"
-        <?php if (!$block->config->isStripeJsEnabled()): ?>
-          name="payment[cc_cid]"
-        <?php endif; ?>
-        value="<?php /* @noEscape */ echo $block->getInfoData('cc_cid') ?>"/>
-      </div>
-    </div>
-
-  <?php endif; ?>
+  <?php echo $block->getLayout()->createBlock('StripeIntegration\Payments\Block\StripeElements')->toHtml(); ?>
 
   </fieldset>
 
@@ -146,22 +66,17 @@ if (empty($cards)): ?>
     require(['jquery', 'jquery/ui'], function($){
       $(document).ready(function()
       {
-        var securityMethod = '<?php echo $block->config->getSecurityMethod(); ?>';
         var stripeJsPublishableKey = '<?php echo $block->config->getPublishableKey(); ?>';
+        var stripeJsLocale = '<?php echo $block->config->getStripeJsLocale(); ?>';
         stripe.avsFields = <?php echo $this->getBillingAddress(); ?>;
-        if (securityMethod > 0)
-          initStripe(stripeJsPublishableKey, securityMethod);
+        initStripe({ apiKey: stripeJsPublishableKey, locale: stripeJsLocale });
       });
     });
   </script>
 
   <div class="actions-toolbar">
     <div class="primary">
-      <button type="submit" title="Save" class="action save primary"
-        <?php if ($block->config->getSecurityMethod() > 0): ?>
-          onclick="return stripe.saveCard(this);"
-        <?php endif; ?>
-        >
+      <button type="submit" title="Save" class="action save primary" onclick="return stripe.saveCard(this);">
         <span>
           <?php echo $block->escapeHtml(__('Save')); ?>
         </span>

@@ -7,6 +7,8 @@ use StripeIntegration\Payments\Helper\Logger;
 
 class Migrate
 {
+    public $areaCode = null;
+
     public $methods = [
         // Old Stripe official module
         "stripecreditcards" => "stripe_payments",
@@ -35,22 +37,39 @@ class Migrate
     ];
 
     public function __construct(
-        \Magento\Sales\Model\ResourceModel\Order\Payment\Collection $paymentsCollection
+        \Magento\Sales\Model\ResourceModel\Order\Payment\Collection $paymentsCollection,
+        \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
+        \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
+        \Magento\Catalog\Model\Product\Action $productAction
     )
     {
         $this->paymentsCollection = $paymentsCollection;
+        $this->productCollectionFactory = $productCollectionFactory;
+        $this->productRepository = $productRepository;
+        $this->productAction = $productAction;
+        $this->objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+    }
+
+    public function initAreaCode()
+    {
+        if ($this->areaCode)
+            return;
+
+        $this->areaCode = $this->objectManager->get('StripeIntegration\Payments\Helper\AreaCode');
+        $this->areaCode->setAreaCode();
     }
 
     public function orders()
     {
+        $this->initAreaCode();
         $fromMethods = array_keys($this->methods);
         $collection = $this->paymentsCollection->addFieldToFilter("method", ["in" => $fromMethods]);
-        echo "\n";
+        // echo "\n";
         foreach ($collection as $entry)
         {
             $from = $entry->getMethod();
             $to = $this->methods[$from];
-            echo $entry->getEntityId() . ": $from => $to\n";
+            // echo $entry->getEntityId() . ": $from => $to\n";
             $entry->setMethod($to);
             $entry->save();
         }
@@ -58,6 +77,7 @@ class Migrate
 
     public function customers($setup)
     {
+        $this->initAreaCode();
         $table = $setup->getTable('cryozonic_stripe_customers');
         if ($setup->tableExists('cryozonic_stripe_customers'))
         {
@@ -76,6 +96,34 @@ class Migrate
                 false
             );
             $setup->getConnection()->query($sqlQuery);
+        }
+    }
+
+    public function subscriptions($setup)
+    {
+        $this->initAreaCode();
+        $subscriptionProducts = $this->productCollectionFactory->create();
+
+        try
+        {
+            $subscriptionProducts->addAttributeToSelect('*')
+                ->addAttributeToFilter('cryozonic_sub_enabled', 1)
+                ->load();
+
+            foreach ($subscriptionProducts as $subscriptionProduct)
+            {
+                $this->productAction->updateAttributes([ $subscriptionProduct->getId() ], [
+                    "stripe_sub_enabled" => $subscriptionProduct->getCryozonicSubEnabled(),
+                    "stripe_sub_interval" => $subscriptionProduct->getCryozonicSubInterval(),
+                    "stripe_sub_interval_count" => $subscriptionProduct->getCryozonicSubIntervalCount(),
+                    "stripe_sub_trial" => $subscriptionProduct->getCryozonicSubTrial(),
+                    "stripe_sub_initial_fee" => $subscriptionProduct->getCryozonicSubInitialFee()
+                ], 0);
+            }
+        }
+        catch (\Exception $e)
+        {
+            // The cryozonic_sub_enabled attribute does not exist
         }
     }
 }

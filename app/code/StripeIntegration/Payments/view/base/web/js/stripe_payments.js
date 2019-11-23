@@ -1,20 +1,18 @@
 // Copyright © Stripe, Inc
 //
 // @package    StripeIntegration_Payments
-// @version    1.1.2
+// @version    1.4.0
 
 var stripeTokens = {};
 
-var initStripe = function(apiKey, securityMethod, callback)
+var initStripe = function(params, callback)
 {
     if (typeof callback == "undefined")
         callback = function() {};
 
-    stripe.securityMethod = securityMethod;
-    stripe.apiKey = apiKey;
-
-    if (stripe.securityMethod == 1)
-        stripe.loadStripeJsV2(stripe.onLoadStripeJsV2);
+    stripe.apiKey = params.apiKey;
+    stripe.locale = params.locale;
+    stripe.onStripeInitCallback = callback;
 
     // We always load v3 so that we use Payment Intents
     stripe.loadStripeJsV3(stripe.onLoadStripeJsV3);
@@ -38,7 +36,7 @@ var initStripe = function(apiKey, securityMethod, callback)
 var stripe =
 {
     // Properties
-    version: "1.1.2",
+    version: "1.4.0",
     quote: null, // Comes from the checkout js
     customer: null, // Comes from the checkout js
     onPaymentSupportedCallbacks: [],
@@ -48,7 +46,7 @@ var stripe =
     applePayButton: null,
     applePaySuccess: false,
     applePayResponse: null,
-    securityMethod: 0,
+    locale: 'auto',
     card: null,
     stripeJsV2: null,
     stripeJsV3: null,
@@ -62,34 +60,12 @@ var stripe =
     response: null,
     iconsContainer: null,
     paymentIntent: null,
+    paymentIntents: [],
     concludedPaymentIntents: [],
     isAdmin: false,
+    onStripeInitCallback: function() {},
 
     // Methods
-    shouldLoadStripeJsV2: function()
-    {
-        return (stripe.securityMethod == 1 || (stripe.securityMethod == 2 && stripe.isApplePayEnabled()));
-    },
-    loadStripeJsV2: function(callback)
-    {
-        if (!stripe.shouldLoadStripeJsV2())
-            return callback();
-
-        var script = document.getElementsByTagName('script')[0];
-        var stripeJsV2 = document.createElement('script');
-        stripeJsV2.src = "https://js.stripe.com/v2/";
-        stripeJsV2.onload = function()
-        {
-            stripe.onLoadStripeJsV2();
-            callback();
-        };
-        stripeJsV2.onerror = function(evt) {
-            console.warn("Stripe.js v2 could not be loaded");
-            console.error(evt);
-            callback();
-        };
-        script.parentNode.insertBefore(stripeJsV2, script);
-    },
     loadStripeJsV3: function(callback)
     {
         var script = document.getElementsByTagName('script')[0];
@@ -108,22 +84,6 @@ var stripe =
         };
         // Do this on the next cycle so that stripe.onLoadStripeJsV2() finishes first
         script.parentNode.insertBefore(stripeJsV3, script);
-    },
-    onLoadStripeJsV2: function()
-    {
-        if (!stripe.stripeJsV2)
-        {
-            try
-            {
-                Stripe.setPublishableKey(stripe.apiKey);
-                stripe.stripeJsV2 = Stripe;
-                stripe.onStripeInit();
-            }
-            catch (e)
-            {
-                return stripe.onStripeInit('Could not initialize Stripe.js, please check that your Stripe API keys are correct.');
-            }
-        }
     },
     onLoadStripeJsV3: function()
     {
@@ -157,6 +117,8 @@ var stripe =
             // We are at the customer account section
             stripe.displayCardError(err);
         }
+
+        stripe.onStripeInitCallback();
     },
     initLoadedStripeJsV3: function()
     {
@@ -215,14 +177,11 @@ var stripe =
     getStripeElementsOptions: function()
     {
         return {
-            locale: 'auto'
+            locale: stripe.locale
         };
     },
     initStripeElements: function()
     {
-        if (stripe.securityMethod != 2)
-            return;
-
         if (document.getElementById('stripe-payments-card-number') === null)
             return;
 
@@ -710,7 +669,10 @@ var stripe =
             var billingAddress = stripe.quote.billingAddress();
             var name = billingAddress.firstname + ' ' + billingAddress.lastname;
             owner.name = name;
-            owner.email = stripe.customer.customerData.email;
+            if (stripe.quote.guestEmail)
+                owner.email = stripe.quote.guestEmail;
+            else
+                owner.email = stripe.customer.customerData.email;
             owner.phone = billingAddress.telephone;
         }
 
@@ -723,6 +685,9 @@ var stripe =
             owner.address.postal_code = stripe.avsFields.address_zip;
             owner.address.state = stripe.avsFields.address_state;
         }
+
+        if (!owner.phone)
+            delete owner.phone;
 
         return owner;
     },
@@ -886,13 +851,6 @@ var stripe =
 
         return err;
     },
-    getPaymentIntent: function()
-    {
-        if (stripe.paymentIntent && stripe.concludedPaymentIntents.indexOf(stripe.paymentIntent) < 0)
-            return stripe.paymentIntent;
-
-        return null;
-    },
     shouldSaveCard: function()
     {
         var saveCardInput = document.getElementById('stripe_payments_cc_save');
@@ -902,26 +860,37 @@ var stripe =
 
         return saveCardInput.checked;
     },
-    is3DSecureRequired: function(paymentMethod)
+    getPaymentIntent: function(callback)
     {
-        if (typeof paymentMethod.card == undefined)
-            return false;
-
-        if (typeof paymentMethod.card.three_d_secure == undefined)
-            return false;
-
-        return (paymentMethod.card.three_d_secure == "required");
+        require(['mage/mage', 'mage/url'], function(mage, url) {
+            var linkUrl = url.build('rest/V1/stripe/payments/get_payment_intent');
+            jQuery.get(linkUrl, {}, function(response)
+            {
+                try
+                {
+                    callback(null, response.responseJSON.paymentIntent);
+                }
+                catch (e)
+                {
+                    callback("Could not retrieve payment details, please contact us for help");
+                    console.error(response);
+                }
+            });
+        });
     },
-    preventAdmin3DSecure: function(paymentMethod, done)
+    handleCardPayment: function(done)
     {
         try
         {
-            if (stripe.isAdmin && stripe.is3DSecureRequired(paymentMethod))
-            {
-                return done("This card cannot be used because it requires a 3D Secure authentication by the customer");
-            }
+            stripe.closePaysheet('success');
 
-            return done();
+            stripe.stripeJsV3.handleCardPayment(stripe.paymentIntent).then(function(result)
+            {
+                if (result.error)
+                    return done(result.error.message);
+
+                return done();
+            });
         }
         catch (e)
         {
@@ -947,18 +916,42 @@ var stripe =
             done(e.message);
         }
     },
-    authenticateCustomer: function(done)
+    processNextAuthentication: function(done)
+    {
+        if (stripe.paymentIntents.length > 0)
+        {
+            stripe.paymentIntent = stripe.paymentIntents.pop();
+            stripe.authenticateCustomer(stripe.paymentIntent, function(err)
+            {
+                if (err)
+                    done(err);
+                else
+                    stripe.processNextAuthentication(done);
+            });
+        }
+        else
+        {
+            stripe.paymentIntent = null;
+            return done();
+        }
+    },
+    authenticateCustomer: function(paymentIntentId, done)
     {
         try
         {
-            stripe.stripeJsV3.retrievePaymentIntent(stripe.paymentIntent).then(function(result)
+            stripe.stripeJsV3.retrievePaymentIntent(paymentIntentId).then(function(result)
             {
                 if (result.error)
                     return done(result.error);
 
                 if (result.paymentIntent.status == "requires_action"
                     || result.paymentIntent.status == "requires_source_action")
-                    return stripe.handleCardAction(done);
+                {
+                    if (result.paymentIntent.confirmation_method == "manual")
+                        return stripe.handleCardAction(done);
+                    else
+                        return stripe.handleCardPayment(done);
+                }
 
                 return done();
             });
@@ -1016,16 +1009,22 @@ var stripe =
             // Will get here if we already closed it
         }
     },
-    refreshPaymentIntent: function(callback)
+    isAuthenticationRequired: function(msg)
     {
-        // In the Magento admin, BASE_URL is wrong
-        if (typeof AdminOrder != "undefined")
-            return callback();
+        stripe.paymentIntent = null;
 
-        require(['mage/mage', 'mage/url'], function(mage, url) {
-            var linkUrl = url.build('rest/V1/stripe/payments/payment_intent_refresh');
-            jQuery.get(linkUrl, {}, callback);
-        });
+        // 500 server side errors
+        if (typeof msg == "undefined")
+            return false;
+
+        // Case of subscriptions
+        if (msg.indexOf("Authentication Required: ") === 0)
+        {
+            stripe.paymentIntents = msg.substring("Authentication Required: ".length).split(",");
+            return true;
+        }
+
+        return false;
     }
 };
 
@@ -1080,10 +1079,7 @@ var createStripeToken = function(callback)
             stripeTokens[cardKey] = token;
             setStripeToken(token, result.paymentMethod);
 
-            if (stripe.getPaymentIntent())
-                stripe.preventAdmin3DSecure(result.paymentMethod, done);
-            else
-                return done();
+            return done();
         });
     }
     catch (e)

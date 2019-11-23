@@ -12,6 +12,7 @@
         <include path="StripeIntegration_Payments::system/basic.xml"/>
         <include path="StripeIntegration_Payments::system/cards.xml"/>
         <include path="StripeIntegration_Payments::system/express.xml"/>
+        <include path="StripeIntegration_Payments::system/subscriptions.xml"/>
         <include path="StripeIntegration_Payments::system/bancontact.xml"/>
         <include path="StripeIntegration_Payments::system/giropay.xml"/>
         <include path="StripeIntegration_Payments::system/ideal.xml"/>
@@ -22,6 +23,7 @@
         <include path="StripeIntegration_Payments::system/p24.xml"/>
         <include path="StripeIntegration_Payments::system/alipay.xml"/>
         <include path="StripeIntegration_Payments::system/wechat.xml"/>
+        <include path="StripeIntegration_Payments::system/fpx.xml"/>
       </group>
     </section>
   </system>

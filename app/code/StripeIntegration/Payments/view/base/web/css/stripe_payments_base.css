@@ -61,6 +61,10 @@ fieldset.payment-method.stripe-payments { border: 0; }
 }
 #payment_form_stripe_payments.admin__fieldset #saved-cards {
     margin-bottom: 20px;
+    margin-top: 20px;
+}
+.admin__payment-method-wrapper {
+    width: calc(80%);
 }
 
 /* Card Icons */

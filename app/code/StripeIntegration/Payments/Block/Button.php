@@ -74,7 +74,6 @@ class Button extends Template
         \Magento\Framework\Locale\Resolver $localeResolver,
         array $data = []
     ) {
-
         parent::__construct($context, $data);
 
         $this->registry = $registry;
@@ -120,105 +119,11 @@ class Button extends Template
         ];
     }
 
-    /**
-     * Get Payment Request Params
-     * @return array
-     */
-    public function getApplePayParams()
+    public function getProductId()
     {
-        if ($this->paymentsHelper->hasSubscriptions())
-            return null;
-
-        return array_merge(
-            [
-                'country' => $this->getCountry(),
-                'requestPayerName' => true,
-                'requestPayerEmail' => true,
-                'requestPayerPhone' => true,
-                'requestShipping' => !$this->getQuote()->isVirtual(),
-            ],
-            $this->expressHelper->getCartItems($this->getQuote())
-        );
-    }
-
-    /**
-     * Get Payment Request Params for Single Product
-     * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function getProductApplePayParams()
-    {
-        /** @var \Magento\Catalog\Model\Product $product */
         $product = $this->registry->registry('product');
-
-        if (!$product || $product->getCryozonicSubEnabled()) {
-            return [];
-        }
-
-        $quote = $this->getQuote();
-
-        $currency = $quote->getQuoteCurrencyCode();
-        if (empty($currency)) {
-            $currency = $quote->getStore()->getCurrentCurrency()->getCode();
-        }
-
-        // Get Current Items in Cart
-        $params = $this->expressHelper->getCartItems($quote);
-        $amount = $params['total']['amount'];
-        $items = $params['displayItems'];
-
-        $shouldInclTax = $this->expressHelper->shouldCartPriceInclTax($quote->getStore());
-        if ($this->expressHelper->getStoreConfig('payment/stripe_payments/use_store_currency')) {
-            $convertedFinalPrice = $this->priceCurrency->convertAndRound(
-                $product->getFinalPrice(),
-                null,
-                $currency
-            );
-
-            $price = $this->expressHelper->getProductDataPrice(
-                $product,
-                $convertedFinalPrice,
-                $shouldInclTax,
-                $quote->getCustomerId(),
-                $quote->getStore()->getStoreId()
-            );
-        } else {
-            $price = $this->expressHelper->getProductDataPrice(
-                $product,
-                $product->getFinalPrice(),
-                $shouldInclTax,
-                $quote->getCustomerId(),
-                $quote->getStore()->getStoreId()
-            );
-        }
-
-        // Append Current Product
-        $productTotal = $this->expressHelper->getAmountCents($price, $currency);
-        $amount += $productTotal;
-
-        $items[] = [
-            'label' => $product->getName(),
-            'amount' => $productTotal,
-            'pending' => false
-        ];
-
-        return [
-            'country' => $this->getCountry(),
-            'currency' => strtolower($currency),
-            'total' => [
-                'label' => $this->getLabel(),
-                'amount' => $amount,
-                'pending' => true
-            ],
-            'displayItems' => $items,
-            'requestPayerName' => true,
-            'requestPayerEmail' => true,
-            'requestPayerPhone' => true,
-            'requestShipping' => $this->expressHelper->shouldRequestShipping($quote, $product),
-        ];
+        return $product->getId();
     }
-
     /**
      * Get Quote
      * @return \Magento\Quote\Model\Quote

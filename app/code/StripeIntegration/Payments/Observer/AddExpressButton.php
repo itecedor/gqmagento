@@ -26,6 +26,8 @@ class AddExpressButton implements ObserverInterface
             $observer->getEvent()->getOrPosition()
         );
 
+        $shortcut->setIsShoppingCart($observer->getEvent()->getIsShoppingCart());
+
         $shortcut->setIsCart(get_class($shortcutButtons) == \Magento\Checkout\Block\QuoteShortcutButtons::class);
 
         $shortcutButtons->addShortcut($shortcut);

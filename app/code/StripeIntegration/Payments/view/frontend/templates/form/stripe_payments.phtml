@@ -41,87 +41,7 @@ $cards = $block->getCustomerCards();
     </div>
   <?php endif; ?>
 
-  <?php if ($this->config->isStripeElementsEnabled()): ?>
-
-    <?php echo $block->getLayout()->createBlock('StripeIntegration\Payments\Block\StripeElements')->toHtml(); ?>
-
-  <?php else: ?>
-
-  <div class="field _required stripe-new">
-    <label class="label" for="stripe_payments_cc_owner">
-      <span><?php echo $block->escapeHtml(__('Name on Card')); ?></span>
-    </label>
-    <div class="control">
-      <input type="text" id="stripe_payments_cc_owner"
-        <?php if (!$block->config->isStripeJsEnabled()): ?>
-          name="payment[cc_owner]"
-        <?php endif; ?>
-        title="<?php echo $block->escapeHtml(__('Name on Card')); ?>" class="text stripe-input"
-        value="<?php /* @noEscape */ echo $block->getInfoData('cc_owner'); ?>" />
-    </div>
-  </div>
-
-  <div class="field-number field _required stripe-new">
-    <label class="label" for="stripe_payments_cc_number">
-      <span><?php echo $block->escapeHtml(__('Card Number')); ?></span>
-    </label>
-    <div class="control">
-      <input type="text" id="stripe_payments_cc_number"
-      <?php if (!$block->config->isStripeJsEnabled()): ?>
-        name="payment[cc_number]"
-      <?php endif; ?>
-      title="<?php echo $block->escapeHtml(__('Card Number')); ?>" class="text stripe-input" value="<?php /* @noEscape */ echo $block->getInfoData('cc_number'); ?>"/>
-    </div>
-  </div>
-
-  <div class="field-date field _required stripe-new">
-    <label class="label" for="stripe_payments_expiration_mo">
-      <span><?php echo $block->escapeHtml(__('Expiration Date')); ?></span>
-    </label>
-    <div class="control">
-      <select id="stripe_payments_expiration_mo"
-        <?php if (!$block->config->isStripeJsEnabled()): ?>
-          name="payment[cc_exp_month]"
-        <?php endif; ?>
-        class="select month required-entry stripe-input">
-        <?php foreach ($block->getCcMonths() as $k => $v): ?>
-          <option value="<?php echo $block->escapeHtml($k); ?>"
-            <?php if ($k == $ccExpMonth): ?>selected="selected"<?php endif ?>>
-            <?php echo $block->escapeHtml($v); ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-      <select id="stripe_payments_expiration_yr"
-        <?php if (!$block->config->isStripeJsEnabled()): ?>
-          name="payment[cc_exp_year]"
-        <?php endif; ?>
-        class="select year required-entry stripe-input">
-        <?php foreach ($block->getCcYears() as $k => $v): ?>
-          <option value="<?php /* @noEscape */ echo $k ? $block->escapeHtml($k) : '' ?>"
-            <?php if ($k == $ccExpYear): ?>selected="selected"<?php endif ?>>
-            <?php echo $block->escapeHtml($v); ?>
-          </option>
-        <?php endforeach ?>
-      </select>
-    </div>
-  </div>
-
-  <div class="field-number required field _required stripe-new">
-    <label class="label" for="stripe_payments_cc_cid">
-      <span><?php echo $block->escapeHtml(__('Card Verification Number')); ?></span>
-    </label>
-    <div class="control">
-      <input type="text" title="<?php echo $block->escapeHtml(__('Card Verification Number')); ?>"
-      class="required-entry cvn text stripe-input"
-      style="max-width: 50px" id="stripe_payments_cc_cid"
-      <?php if (!$block->config->isStripeJsEnabled()): ?>
-        name="payment[cc_cid]"
-      <?php endif; ?>
-      value="<?php /* @noEscape */ echo $block->getInfoData('cc_cid') ?>"/>
-    </div>
-  </div>
-
-  <?php endif; ?>
+  <?php echo $block->getLayout()->createBlock('StripeIntegration\Payments\Block\StripeElements')->toHtml(); ?>
 
   <!-- In multishipping, Magento 2 will create multiple charges. We need to save the card in order to reuse if for all charges -->
   <input type="hidden" id="stripe_payments_cc_save" name="payment[cc_save]" value="1" />
@@ -135,7 +55,8 @@ $cards = $block->getCustomerCards();
     {
       var securityMethod = '<?php echo $block->config->getSecurityMethod(); ?>';
       var stripeJsPublishableKey = '<?php echo $block->config->getPublishableKey(); ?>';
-      initStripe(stripeJsPublishableKey, securityMethod);
+      var stripeJsLocale = '<?php echo $block->config->getStripeJsLocale(); ?>';
+      initStripe({ apiKey: stripeJsPublishableKey, locale: stripeJsLocale });
       stripe.onWindowLoaded(stripe.initMultiShippingEvents);
     });
   });

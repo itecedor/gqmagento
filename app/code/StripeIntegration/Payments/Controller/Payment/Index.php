@@ -71,27 +71,41 @@ class Index extends \Magento\Framework\App\Action\Action
 
     public function execute()
     {
-        $session = $this->checkoutHelper->getCheckout();
-        $sourceId = $this->getRequest()->getParam('source');
-        $clientSecret = $this->getRequest()->getParam('client_secret');
+        $sourceType = $this->getRequest()->getParam('source_type');
+        $this->session = $this->checkoutHelper->getCheckout();
 
-        if (empty($sourceId) || empty($clientSecret)) {
-            $session->restoreQuote();
+        switch ($sourceType) {
+            case 'fpx':
+                $this->returnFromPaymentIntentsAPI();
+                break;
+            default:
+                $this->returnFromSourcesAPI();
+                break;
+        }
+    }
+
+    private function returnFromPaymentIntentsAPI()
+    {
+        $paymentIntentId = $this->getRequest()->getParam('payment_intent');
+        $clientSecret = $this->getRequest()->getParam('payment_intent_client_secret');
+
+        if (empty($paymentIntentId) || empty($clientSecret)) {
+            $this->session->restoreQuote();
             $this->messageManager->addError(__('Something has gone wrong with your payment. Please contact us.'));
             $this->_redirect('checkout/cart');
             return;
         }
 
         // Security, the error message is a bit confusing on purpose
-        if ($clientSecret !== $session->getStripePaymentsClientSecret()) {
-            $session->restoreQuote();
+        if ($clientSecret !== $this->session->getStripePaymentsClientSecret()) {
+            $this->session->restoreQuote();
             $this->messageManager->addError(__('Your session has expired.'));
             $this->_redirect('checkout/cart');
             return;
         }
 
         // Load Order
-        $incrementId = $session->getLastRealOrderId();
+        $incrementId = $this->session->getLastRealOrderId();
         $order = $this->orderFactory->create()->loadByIncrementId($incrementId);
         if (!$order->getId()) {
             $this->checkoutHelper->getCheckout()->restoreQuote();
@@ -104,13 +118,82 @@ class Index extends \Magento\Framework\App\Action\Action
         $method = $order->getPayment()->getMethodInstance();
 
         // Retrieve source
-        try {
+        try
+        {
+            $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntentId);
+            if (!$paymentIntent || !isset($paymentIntent->id))
+                throw new LocalizedException(__('The payment intent with ID %1 could not be retrieved from Stripe', $sourceId));
+        }
+        catch (\Exception $e)
+        {
+            $this->session->restoreQuote();
+            $this->messageManager->addError(__('Could not retrieve payment details. Please contact us.'));
+            $this->_redirect('checkout/cart');
+            return;
+        }
+
+        // Finish payment by status
+        switch ($paymentIntent->status) {
+            case 'succeeded':
+            case 'processing':
+                // Redirect to Success page
+                $this->checkoutHelper->getCheckout()->getQuote()->setIsActive(false)->save();
+                $this->_redirect('checkout/onepage/success');
+                break;
+            default:
+                $order->addStatusHistoryComment("Authorization failed.");
+                $this->helper->cancelOrCloseOrder($order);
+                $this->session->restoreQuote();
+                $this->messageManager->addError(__('Payment failed.'));
+                $this->_redirect('checkout/cart');
+                break;
+        }
+    }
+
+    private function returnFromSourcesAPI()
+    {
+        $this->session = $this->checkoutHelper->getCheckout();
+        $sourceId = $this->getRequest()->getParam('source');
+        $clientSecret = $this->getRequest()->getParam('client_secret');
+
+        if (empty($sourceId) || empty($clientSecret)) {
+            $this->session->restoreQuote();
+            $this->messageManager->addError(__('Something has gone wrong with your payment. Please contact us.'));
+            $this->_redirect('checkout/cart');
+            return;
+        }
+
+        // Security, the error message is a bit confusing on purpose
+        if ($clientSecret !== $this->session->getStripePaymentsClientSecret()) {
+            $this->session->restoreQuote();
+            $this->messageManager->addError(__('Your session has expired.'));
+            $this->_redirect('checkout/cart');
+            return;
+        }
+
+        // Load Order
+        $incrementId = $this->session->getLastRealOrderId();
+        $order = $this->orderFactory->create()->loadByIncrementId($incrementId);
+        if (!$order->getId()) {
+            $this->checkoutHelper->getCheckout()->restoreQuote();
+            $this->messageManager->addError(__('No order for processing found'));
+            $this->_redirect('checkout/cart');
+            return;
+        }
+
+        /** @var \Magento\Payment\Model\Method\AbstractMethod $method */
+        $method = $order->getPayment()->getMethodInstance();
+
+        // Retrieve source
+        try
+        {
             $source = \Stripe\Source::retrieve($sourceId);
-            if (!$source || !isset($source->id)) {
+            if (!$source || !isset($source->id))
                 throw new LocalizedException(__('The source with ID %1 could not be retrieved from Stripe', $sourceId));
-            }
-        } catch (\Exception $e) {
-            $session->restoreQuote();
+        }
+        catch (\Exception $e)
+        {
+            $this->session->restoreQuote();
             $this->messageManager->addError(__('Could not retrieve payment details. Please contact us.'));
             $this->_redirect('checkout/cart');
             return;
@@ -129,12 +212,12 @@ class Index extends \Magento\Framework\App\Action\Action
             case 'canceled':
                 $order->addStatusHistoryComment("Authorization failed.");
                 $this->helper->cancelOrCloseOrder($order);
-                $session->restoreQuote();
+                $this->session->restoreQuote();
                 $this->messageManager->addError(__('Payment failed.'));
                 $this->_redirect('checkout/cart');
                 break;
             default:
-                $session->restoreQuote();
+                $this->session->restoreQuote();
                 $this->messageManager->addError(__('The payment was not authorized.'));
                 $this->_redirect('checkout/cart');
         }

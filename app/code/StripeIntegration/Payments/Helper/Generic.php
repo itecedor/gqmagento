@@ -11,6 +11,7 @@ use StripeIntegration\Payments\Helper\Logger;
 use StripeIntegration\Payments\Model\PaymentMethod;
 use StripeIntegration\Payments\Model\Config;
 use Magento\Framework\Exception\CouldNotSaveException;
+use Magento\Store\Model\ScopeInterface;
 
 class Generic
 {
@@ -37,7 +38,8 @@ class Generic
         \Magento\Customer\Model\CustomerRegistry $customerRegistry,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Catalog\Model\ProductFactory $productFactory,
-        \Magento\Sales\Model\Order $orderModel,
+        \Magento\Quote\Model\QuoteFactory $quoteFactory,
+        \Magento\Sales\Api\Data\OrderInterfaceFactory $orderFactory,
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Sales\Model\Order\Invoice\CommentFactory $invoiceCommentFactory,
         \Magento\Customer\Model\Address $customerAddress,
@@ -45,7 +47,9 @@ class Generic
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Magento\Framework\App\RequestInterface $requestInterface,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Framework\Pricing\Helper\Data $pricingHelper
+        \Magento\Framework\Pricing\Helper\Data $pricingHelper,
+        \Magento\Framework\App\CacheInterface $cache,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->backendSessionQuote = $backendSessionQuote;
@@ -65,7 +69,8 @@ class Generic
         $this->customerRegistry = $customerRegistry;
         $this->messageManager = $messageManager;
         $this->productFactory = $productFactory;
-        $this->orderModel = $orderModel;
+        $this->quoteFactory = $quoteFactory;
+        $this->orderFactory = $orderFactory;
         $this->cart = $cart;
         $this->invoiceCommentFactory = $invoiceCommentFactory;
         $this->customerAddress = $customerAddress;
@@ -74,6 +79,8 @@ class Generic
         $this->requestInterface = $requestInterface;
         $this->urlBuilder = $urlBuilder;
         $this->pricingHelper = $pricingHelper;
+        $this->cache = $cache;
+        $this->encryptor = $encryptor;
     }
 
     public function getBackendSessionQuote()
@@ -142,10 +149,20 @@ class Generic
         return $model->load($productId);
     }
 
+    public function loadQuoteById($quoteId)
+    {
+        $model = $this->quoteFactory->create();
+        return $model->load($quoteId);
+    }
+
     public function loadOrderByIncrementId($incrementId)
     {
-        $this->orderModel->clearInstance();
-        return $this->orderModel->loadByIncrementId($incrementId);
+        return $this->orderFactory->create()->loadByIncrementId($incrementId);
+    }
+
+    public function loadOrderById($orderId)
+    {
+        return $this->orderFactory->create()->load($orderId);
     }
 
     public function createInvoiceComment($msg, $notify = false, $visibleOnFront = false)
@@ -213,6 +230,11 @@ class Generic
             return $customer;
 
         return null;
+    }
+
+    public function isGuest()
+    {
+        return !$this->customerSession->isLoggedIn();
     }
 
     // Should return the email address of guest customers
@@ -387,12 +409,8 @@ class Generic
         return null;
     }
 
-    public function hasSubscriptions()
+    public function hasSubscriptionsIn($items)
     {
-        if (isset($this->_hasSubscriptions))
-            return true;
-
-        $items = $this->cart->getQuote()->getAllItems();
         foreach ($items as $item)
         {
             // Configurable products cannot be subscriptions. Also fixes a bug where if a configurable product
@@ -401,12 +419,25 @@ class Generic
             // PHP Fatal error:  Uncaught Error: Call to undefined method Magento\Bundle\Model\Product\Type::getConfigurableAttributeCollection()
             if ($item->getProductType() == "configurable") continue;
 
+            // The product has been deleted
+            if (!$item->getProduct())
+                continue;
+
             $product = $this->loadProductById($item->getProduct()->getEntityId());
-            if ($product && $product->getStripeIntegrationSubEnabled())
-                return $this->_hasSubscriptions = true;
+            if ($product && $product->getStripeSubEnabled())
+                return true;
         }
 
         return false;
+    }
+
+    public function hasSubscriptions()
+    {
+        if (isset($this->_hasSubscriptions) && $this->_hasSubscriptions)
+            return true;
+
+        $items = $this->cart->getQuote()->getAllItems();
+        return $this->_hasSubscriptions = $this->hasSubscriptionsIn($items);
     }
 
     public function isZeroDecimal($currency)
@@ -418,7 +449,8 @@ class Generic
 
     public function isAuthorizationExpired($errorMessage)
     {
-        return (strstr($errorMessage, "cannot be captured because the charge has expired") !== false);
+        return ((strstr($errorMessage, "cannot be captured because the charge has expired") !== false) ||
+            (strstr($errorMessage, "could not be captured because it has a status of canceled") !== false));
     }
 
     public function addError($msg)
@@ -481,13 +513,21 @@ class Generic
         }
 
         if ($this->isAdmin())
-            throw new \Exception($msg);
+            throw new CouldNotSaveException(__($msg));
         else if ($this->isAjaxRequest())
             throw new CouldNotSaveException(__($this->cleanError($msg)), $e);
         else if ($this->isMultiShipping())
             throw new \Magento\Framework\Exception\LocalizedException(__($msg), $e);
         else
             $this->addError($this->cleanError($msg));
+    }
+
+    public function maskException($e)
+    {
+        if (strpos($e->getMessage(), "Received unknown parameter: payment_method_options[card][moto]") === 0)
+            throw new CouldNotSaveException(__("You have enabled MOTO exemptions from the Stripe module configuration section, but your Stripe account has not been gated to use MOTO exemptions. Please contact support@stripe.com to request MOTO enabled for your Stripe account."));
+
+        throw $e;
     }
 
     public function isValidToken($token)
@@ -549,26 +589,33 @@ class Generic
         }
     }
 
-    public function invoiceOrder($order, $transactionId = null, $captureCase = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE, $amount = null)
+    public function invoiceOrder($order, $transactionId = null, $captureCase = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE, $amount = null, $save = true)
     {
-        $dbTransaction = $this->transactionFactory->create();
+        if ($save)
+            $dbTransaction = $this->transactionFactory->create();
 
-        // This will kick in with "Authorize Only" mode, but not with "Authorize & Capture"
+        // This will kick in with "Authorize Only" mode and with subscription orders, but not with "Authorize & Capture"
         if ($order->canInvoice())
         {
             $invoice = $this->invoiceService->prepareInvoice($order);
             $invoice->setRequestedCaptureCase($captureCase);
 
             if ($transactionId)
+            {
                 $invoice->setTransactionId($transactionId);
+                $order->getPayment()->setLastTransId($transactionId);
+            }
 
             $this->adjustInvoiceAmounts($invoice, $amount);
 
             $invoice->register();
 
-            $dbTransaction->addObject($invoice)
+            if ($save)
+                $dbTransaction->addObject($invoice)
                         ->addObject($order)
                         ->save();
+
+            return $invoice;
         }
         // Invoices have already been generated with Authorize & Capture, but have not actually been captured because
         // the source is not chargeable yet. These should have a pending status.
@@ -583,14 +630,18 @@ class Generic
                     $this->adjustInvoiceAmounts($invoice, $amount);
 
                     $invoice->register();
-                    $dbTransaction->addObject($invoice);
+
+                    if ($save)
+                        $dbTransaction->addObject($invoice)
+                                ->addObject($order)
+                                ->save();
+
+                    return $invoice;
                 }
             }
-
-            $dbTransaction->addObject($order)->save();
         }
 
-        return $invoice;
+        return null;
     }
 
     // Pending orders are the ones that were placed with an asynchronous payment method, such as SOFORT or SEPA Direct Debit,
@@ -605,7 +656,10 @@ class Generic
         $invoice->setRequestedCaptureCase($captureCase);
 
         if ($transactionId)
+        {
             $invoice->setTransactionId($transactionId);
+            $order->getPayment()->setLastTransId($transactionId);
+        }
 
         $invoice->register();
 
@@ -676,16 +730,6 @@ class Generic
     public function cleanToken($token)
     {
         return preg_replace('/-.*$/', '', $token);
-    }
-
-    public function retrieveToken($token)
-    {
-        if (isset($this->sources[$token]))
-            return $this->sources[$token];
-
-        $this->sources[$token] = \Stripe\Token::retrieve($token);
-
-        return $this->sources[$token];
     }
 
     public function retrieveCard($customer, $token)
@@ -876,5 +920,118 @@ class Generic
         }
 
         return $refundId;
+    }
+
+    public function getApiKey()
+    {
+        $storeId = $this->getStoreId();
+        $mode = $this->scopeConfig->getValue("payment/stripe_payments_basic/stripe_mode", ScopeInterface::SCOPE_STORE, $storeId);
+        $key = $this->scopeConfig->getValue("payment/stripe_payments_basic/stripe_{$mode}_sk", ScopeInterface::SCOPE_STORE, $storeId);
+
+        if (!preg_match('/^[A-Za-z0-9_]+$/',$key))
+            $key = $this->encryptor->decrypt($key);
+
+        return trim($key);
+    }
+
+    public function getExportAddress($quote)
+    {
+        if (empty($quote))
+            return null;
+
+        if ($quote->getIsVirtual())
+            $address = $quote->getBillingAddress();
+        else
+            $address = $quote->getShippingAddress();
+
+        if (empty($address))
+            return null;
+
+        $postcode = $address->getData('postcode');
+        $city = $address->getCity();
+        $country = $address->getCountryId();
+        $state = $address->getRegion();
+
+        $line1 = null;
+        $line2 = null;
+        $street = explode('\n', $address->getData('street'));
+        if (!empty($street) && is_array($street) && count($street))
+        {
+            $line1 = $street[0];
+
+            if (!empty($street[1]))
+                $line2 = $street[1];
+        }
+
+        // Sanitization
+        $line1 = preg_replace("/\r|\n/", " ", $line1);
+        $line1 = addslashes($line1);
+
+        if (empty($line1))
+            return null;
+
+        return array(
+            'line1' => $line1,
+            'line2' => $line2,
+            'postal_code' => $postcode,
+            'city' => $city,
+            'state' => $state,
+            'country' => $country
+        );
+    }
+
+    public function getConsumerCountry($quote)
+    {
+        $address = $this->getExportAddress($quote);
+
+        if ($address)
+            return $address['country'];
+
+        return null;
+    }
+
+    public function getStripeAccount()
+    {
+        try
+        {
+            return \Stripe\Account::retrieve();
+        }
+        catch (\Exception $e)
+        {
+            $this->dieWithError($e->getMessage());
+            return null;
+        }
+    }
+
+    public function getStripeAccountCountry()
+    {
+        $key = $this->getApiKey() . "_country";
+        $country = $this->cache->load($key);
+        if ($country)
+            return $country;
+
+        $account = $this->getStripeAccount();
+
+        if (empty($account) || empty($account->country))
+            return null;
+
+        if ($account->country)
+        {
+            $this->cache->save($account->country, $key, $tags = [], $lifetime = (356 * 24 * 60 * 60));
+            return $account->country;
+        }
+
+        return null;
+    }
+
+    public function getCrossBorderClassification($quote)
+    {
+        $consumerCountry = $this->getConsumerCountry($quote);
+        $merchantCountry = $this->getStripeAccountCountry();
+
+        if ($merchantCountry == "IN" && $consumerCountry != "IN")
+            return "export";
+        else
+            return "domestic";
     }
 }

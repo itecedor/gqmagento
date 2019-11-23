@@ -16,31 +16,31 @@
 }
 
 /* My Subscriptions customer account section */
-.stripe-subscriptions-subscription-edit {
+.stripe-subscription-edit {
     max-height: 0;
     overflow: hidden;
     transition: max-height;
     transition-duration: 0.8s;
 }
-.stripe-subscriptions-subscription-edit.show {
+.stripe-subscription-edit.show {
     max-height: 30em;
 }
-.stripe-subscriptions-subscription-edit .section {
+.stripe-subscription-edit .section {
     margin: 15px 0 10px 0;
 }
-.stripe-subscriptions-subscription-edit .mutable {
+.stripe-subscription-edit .mutable {
     display: none;
 }
-.stripe-subscriptions-subscription-edit.edit .mutable {
+.stripe-subscription-edit.edit .mutable {
     display: block;
 }
-.stripe-subscriptions-subscription-edit.edit .static {
+.stripe-subscription-edit.edit .static {
     display: none;
 }
-.stripe-subscriptions-subscription-edit .actions {
+.stripe-subscription-edit .actions {
     margin-top: 10px;
 }
-.stripe-subscriptions-subscription-edit input {
+.stripe-subscription-edit input {
     margin: 2px 0;
 }
 
@@ -183,6 +183,11 @@
     }
 }
 
+.box-tocart .action.tocart.payment-request-button
+{
+    padding: 0;
+}
+
 .payment-request-button {
     width: 240px;
 }
@@ -220,7 +225,7 @@
     margin-top: 15px;
 }
 
-.stripe-payments-express-minicart .payment-request-button {
+.stripe-payments-express-minicart .payment-request-button, .payment-request-button.cart {
     width: 100% !important;
 }
 
@@ -250,4 +255,84 @@
     border: 1px solid #1979c3;
     color: #fff;
     box-shadow: unset;
+}
+
+
+/* FPX */
+#stripe-fpx-select {
+    background: #fff url(../img/select-bg.svg) no-repeat 100% 45%;
+    background-clip: padding-box;
+    font-family: 'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-size: 14px;
+    vertical-align: baseline;
+    width: 100%;
+    box-sizing: border-box;
+}
+#stripe-fpx-select, #stripe-fpx-dropdown {
+    padding: 10px;
+    border: 1px solid #ccc;
+    box-shadow: 0px 1px 3px 0px #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    user-select: none;
+}
+#stripe-fpx-dropdown {
+    list-style: none;
+    padding: 0;
+}
+#stripe-fpx-dropdown li {
+    padding: 10px 12px 10px 50px;
+    margin: 0;
+    background-position: 10px 45%;
+    background-repeat: no-repeat;
+    background-size: 30px 30px;
+}
+#stripe-fpx-dropdown li:first-child {
+    margin-top: 5px;
+}
+#stripe-fpx-dropdown li:last-child {
+    margin-bottom: 5px;
+}
+#stripe-fpx-dropdown li:hover {
+    background-color: #eee;
+}
+#stripe-fpx-dropdown li.affin_bank { background-image: url(../svg/fpx/affin_bank.svg); }
+#stripe-fpx-dropdown li.alliance_bank { background-image: url(../svg/fpx/alliance_bank.svg); }
+#stripe-fpx-dropdown li.ambank { background-image: url(../svg/fpx/ambank.svg); }
+#stripe-fpx-dropdown li.bank_islam { background-image: url(../svg/fpx/bank_islam.svg); }
+#stripe-fpx-dropdown li.bank_rakyat { background-image: url(../svg/fpx/bank_rakyat.svg); }
+#stripe-fpx-dropdown li.bank_muamalat { background-image: url(../svg/fpx/bank_muamalat.svg); }
+#stripe-fpx-dropdown li.bsn { background-image: url(../svg/fpx/bsn.svg); }
+#stripe-fpx-dropdown li.cimb { background-image: url(../svg/fpx/cimb.svg); }
+#stripe-fpx-dropdown li.hong_leong_bank { background-image: url(../svg/fpx/hong_leong_bank.svg); }
+#stripe-fpx-dropdown li.hsbc { background-image: url(../svg/fpx/hsbc.svg); }
+#stripe-fpx-dropdown li.kfh { background-image: url(../svg/fpx/kfh.svg); }
+#stripe-fpx-dropdown li.maybank2u { background-image: url(../svg/fpx/maybank2u.svg); }
+#stripe-fpx-dropdown li.maybank2e { background-image: url(../svg/fpx/maybank2e.svg); }
+#stripe-fpx-dropdown li.ocbc { background-image: url(../svg/fpx/ocbc.svg); }
+#stripe-fpx-dropdown li.public_bank { background-image: url(../svg/fpx/public_bank.svg); }
+#stripe-fpx-dropdown li.rhb { background-image: url(../svg/fpx/rhb.svg); }
+#stripe-fpx-dropdown li.standard_chartered { background-image: url(../svg/fpx/standard_chartered.svg); }
+#stripe-fpx-dropdown li.uob { background-image: url(../svg/fpx/uob.svg); }
+#stripe-fpx-dropdown li.separator {
+    border-bottom: 3px dotted #ccc;
+    margin-bottom: 5px;
+    padding-bottom: 15px;
+}
+
+.multishipping-authorization {
+    font-size: large;
+}
+.multishipping-authorization .block-title {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+    margin-bottom: 1em;
+    font-weight: 400;
+}
+.multishipping-authorization .authentication.message {
+    margin: 2em 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-shadow: 0px 1px 3px 0px #ccc;
+    padding: 1em 4em 1em 2em;
 }

@@ -10,8 +10,10 @@ use Magento\Store\Model\ScopeInterface;
 class Config
 {
     public static $moduleName           = "Magento2";
-    public static $moduleVersion        = "1.1.2";
-    public static $moduleUrl            = "https://stripe.com/magento";
+    public static $moduleVersion        = "1.4.0";
+    public static $moduleUrl            = "https://stripe.com/docs/plugins/magento";
+    public static $partnerId            = "pp_partner_Fs67gT2M6v3mH7";
+    const STRIPE_API                    = "2019-03-14";
 
     // active
     // title
@@ -33,7 +35,6 @@ class Config
     // card_autodetect
     // cctypes
     // card_autodetect
-    // receipt_email
     // allowspecific
     // specificcountry
     // sort_order
@@ -41,42 +42,27 @@ class Config
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         Helper\Generic $helper,
-        \Magento\Framework\Encryption\EncryptorInterface $encryptor
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor,
+        \Magento\Framework\Locale\Resolver $localeResolver
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->helper = $helper;
         $this->encryptor = $encryptor;
+        $this->localeResolver = $localeResolver;
 
         $this->initStripe();
     }
 
     public function initStripe()
     {
-        \Stripe\Stripe::setApiVersion("2019-03-14");
         \Stripe\Stripe::setApiKey($this->getSecretKey());
-        \Stripe\Stripe::setAppInfo($this::$moduleName, $this::$moduleVersion, $this::$moduleUrl);
+        \Stripe\Stripe::setAppInfo($this::$moduleName, $this::$moduleVersion, $this::$moduleUrl, $this::$partnerId);
+        \Stripe\Stripe::setApiVersion(\StripeIntegration\Payments\Model\Config::STRIPE_API);
     }
 
     public static function module()
     {
         return self::$moduleName . " v" . self::$moduleVersion;
-    }
-
-    public function addOn($name, $version, $url = null)
-    {
-        $info = \Stripe\Stripe::getAppInfo();
-
-        // Has been called twice
-        if (strstr($info['version'], $name . '/' . $version) !== false)
-            return;
-
-        if ($name && $version)
-            $info['version'] .= ' ' . $name . '/' . $version;
-
-        if ($url)
-            $info['url'] .= ', ' . $url;
-
-        \Stripe\Stripe::setAppInfo($info['name'], $info['version'], $info['url']);
     }
 
     public function getConfigData($field, $method = null)
@@ -138,11 +124,6 @@ class Config
         return (bool)$this->getConfigData("automatic_invoicing");
     }
 
-    public function isReceiptEmailEnabled()
-    {
-        return (bool)$this->getConfigData('receipt_email');
-    }
-
     public function getSecurityMethod()
     {
         // Older security methods have been depreciated
@@ -155,16 +136,6 @@ class Config
         return ($this->getConfigData('payment_action') == \Magento\Payment\Model\Method\AbstractMethod::ACTION_AUTHORIZE);
     }
 
-    public function isStripeJsEnabled()
-    {
-        return $this->getSecurityMethod() == 1;
-    }
-
-    public function isStripeElementsEnabled()
-    {
-        return $this->getSecurityMethod() == 2;
-    }
-
     public function isStripeRadarEnabled()
     {
         return (($this->getConfigData('radar_risk_level') > 0) && !$this->helper->isAdmin());
@@ -173,13 +144,12 @@ class Config
     public function isApplePayEnabled()
     {
         return $this->getConfigData('apple_pay_checkout')
-            && ($this->isStripeJsEnabled() || $this->isStripeElementsEnabled())
             && !$this->helper->isAdmin();
     }
 
     public function isPaymentRequestButtonEnabled()
     {
-        return $this->isApplePayEnabled() && $this->isStripeElementsEnabled();
+        return $this->isApplePayEnabled();
     }
 
     public function useStoreCurrency()
@@ -212,6 +182,11 @@ class Config
         return ($this->getSaveCards() == 2 || $this->helper->hasSubscriptions() || $this->helper->isMultiShipping());
     }
 
+    public function isMOTOExemptionsEnabled()
+    {
+        return (bool)$this->getConfigData('moto_exemptions');
+    }
+
     public function getIsStripeAPIKeyError()
     {
         if (isset($this->isStripeAPIKeyError))
@@ -228,6 +203,21 @@ class Config
             return 1;
         else
             return (int)$location;
+    }
+
+    public function getStripeJsLocale()
+    {
+        $supportedValues = ["ar", "da", "de", "en", "es", "fi", "fr", "he", "it", "ja", "lt", "ms", "nl", "no", "pl", "ru", "sv", "zh"];
+
+        $locale = $this->localeResolver->getLocale();
+        if (empty($locale))
+            return "auto";
+
+        $lang = strstr($locale, '_', true);
+        if (in_array($lang, $supportedValues))
+            return $lang;
+
+        return "auto";
     }
 
     public function getAmountCurrencyFromQuote($quote, $useCents = true)
@@ -295,15 +285,21 @@ class Config
         else
             $customerName = $order->getCustomerName();
 
+        if ($this->helper->isMultiShipping())
+            $description = "Multi-shipping Order #" . $order->getRealOrderId().' by ' . $customerName;
+        else
+            $description = "Order #" . $order->getRealOrderId().' by ' . $customerName;
+
         $params = array(
           "amount" => round($amount * $cents),
           "currency" => $currency,
-          "description" => "Order #".$order->getRealOrderId().' by '.$customerName,
+          "description" => $description,
           "metadata" => $metadata
         );
 
-        if ($this->isReceiptEmailEnabled() && $this->helper->getCustomerEmail())
-            $params["receipt_email"] = $this->helper->getCustomerEmail();
+        $customerEmail = $this->helper->getCustomerEmail();
+        if ($customerEmail)
+            $params["receipt_email"] = $customerEmail;
 
         return $params;
     }

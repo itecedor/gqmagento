@@ -61,8 +61,9 @@ class Cards extends \Magento\Framework\App\Action\Action
 
             try
             {
+                $this->stripeCustomer->createStripeCustomerIfNotExists();
                 $this->stripeCustomer->addCard($parts[0]);
-                $this->helper->addSuccess(__("Card **** %s was added successfully.", $parts[2]));
+                $this->helper->addSuccess(__("Card **** %1 was added successfully.", $parts[2]));
             }
             catch (\Exception $e)
             {
@@ -100,7 +101,7 @@ class Cards extends \Magento\Framework\App\Action\Action
             if (isset($card->card))
                 $card = $card->card;
 
-            $this->helper->addSuccess(__("Card **** %s has been deleted.", $card->last4));
+            $this->helper->addSuccess(__("Card **** %1 has been deleted.", $card->last4));
         }
         catch (\Stripe\Error\Card $e)
         {

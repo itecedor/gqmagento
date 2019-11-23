@@ -13,7 +13,7 @@ use StripeIntegration\Payments\Model\Config;
 /**
  * Class ConfigProvider
  */
-final class ConfigProvider implements ConfigProviderInterface
+class ConfigProvider implements ConfigProviderInterface
 {
     const CODE = 'stripe_payments';
     const YEARS_RANGE = 15;
@@ -59,13 +59,13 @@ final class ConfigProvider implements ConfigProviderInterface
                     'securityMethod' => $this->config->getSecurityMethod(),
                     'useStoreCurrency' => $this->config->useStoreCurrency(),
                     'stripeJsKey' => $this->config->getPublishableKey(),
+                    'stripeJsLocale' => $this->config->getStripeJsLocale(),
                     'showSaveCardOption' => $this->getShowSaveCardOption(),
                     'alwaysSaveCard' => $this->getAlwaysSaveCard(),
                     'savedCards' => $this->customer->getCustomerCards(),
                     'isApplePayEnabled' => (bool)$this->config->isApplePayEnabled(),
                     'applePayLocation' => $this->config->getApplePayLocation(),
-                    'module' => Config::module(),
-                    'paymentIntent' => $this->paymentIntent->create()->getClientSecret()
+                    'module' => Config::module()
                 ]
             ]
         ];

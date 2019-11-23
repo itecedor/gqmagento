@@ -42,6 +42,16 @@ class Shortcut extends StripeButton implements ShortcutInterface
         return $this;
     }
 
+    public function setIsShoppingCart($isShoppingCart)
+    {
+        $this->isShoppingCart = $isShoppingCart;
+
+        if ($isShoppingCart)
+            $this->_template = 'StripeIntegration_Payments::express/cart_button.phtml';
+        else
+            $this->_template = 'StripeIntegration_Payments::express/minicart_button.phtml';
+    }
+
     /**
      * Is Should Rendered
      * @return bool

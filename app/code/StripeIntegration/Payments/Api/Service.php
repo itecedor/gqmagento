@@ -13,6 +13,8 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\CouldNotSaveException;
+use Magento\Framework\Registry;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 
 class Service implements ServiceInterface
 {
@@ -26,6 +28,16 @@ class Service implements ServiceInterface
      * @var ScopeConfigInterface
      */
     private $scopeConfig;
+
+    /**
+     * @var Registry
+     */
+    protected $registry;
+
+    /**
+     * @var PriceCurrencyInterface
+     */
+    protected $priceCurrency;
 
     /**
      * @var StoreManagerInterface
@@ -178,7 +190,10 @@ class Service implements ServiceInterface
         ProductRepositoryInterface $productRepository,
         \StripeIntegration\Payments\Model\PaymentIntent $paymentIntent,
         \Magento\Framework\DataObjectFactory $dataObjectFactory,
-        \StripeIntegration\Payments\Model\MobileDetect $detect
+        \StripeIntegration\Payments\Model\MobileDetect $detect,
+        Registry $registry,
+        PriceCurrencyInterface $priceCurrency,
+        \StripeIntegration\Payments\Helper\Multishipping $multishippingHelper
     ) {
         $this->logger = $logger;
         $this->scopeConfig = $scopeConfig;
@@ -204,9 +219,11 @@ class Service implements ServiceInterface
         $this->productRepository = $productRepository;
         $this->paymentIntent = $paymentIntent;
         $this->dataObjectFactory = $dataObjectFactory;
-        $this->detect = $detect;;
+        $this->detect = $detect;
+        $this->registry = $registry;
+        $this->priceCurrency = $priceCurrency;
+        $this->multishippingHelper = $multishippingHelper;
     }
-
 
     public function chooseRedirectUrlBetween($externalUrl, $localUrl, $paymentMethod = null)
     {
@@ -240,34 +257,14 @@ class Service implements ServiceInterface
         return $this->chooseRedirectUrlBetween($redirectUrl, $successUrl, $order->getPayment()->getMethod());
     }
 
-    /**
-     * Refunds any dangling PIs for the order and creates a new one for the checkout session
-     *
-     * @api
-     * @return mixed Json object containing the new PI ID.
-     */
-    public function reset_payment_intent($status, $response)
+    public function get_payment_intent()
     {
-        if ($this->paymentIntent->isSuccessful() && !$this->paymentIntent->getDescription())
-        {
-            $quoteId = $this->stripeHelper->getQuote()->getId();
-            $this->paymentIntent->fullRefund("duplicate", ["Status" => $status, "Response" => $response]);
-            $this->paymentIntent->destroy($quoteId);
-            $this->paymentIntent->create();
-        }
-
-        $clientSecret = $this->paymentIntent->getClientSecret();
+        if (!$this->paymentIntent->create())
+            throw new \Exception("The payment intent could not be created");
 
         return \Zend_Json::encode([
-            "paymentIntent" => $clientSecret
+            "paymentIntent" => $this->paymentIntent->getClientSecret()
         ]);
-    }
-
-    public function payment_intent_refresh()
-    {
-        // We simply need to invalidate the local cache so that we don't try to update successful PIs
-        $this->paymentIntent->isSuccessful();
-        return \Zend_Json::encode([]);
     }
 
     /**
@@ -365,7 +362,9 @@ class Service implements ServiceInterface
                              ->setCollectShippingRates(true)
                              ->collectShippingRates();
 
-                    list($carrierCode, $methodCode) = explode('_', $shipping_id);
+                    $parts = explode('_', $shipping_id);
+                    $carrierCode = array_shift($parts);
+                    $methodCode = implode("_", $parts);
 
                     /** @var \Magento\Quote\Api\Data\AddressInterface $ba */
                     $shippingAddress = $this->inputProcessor->convertValue($shippingAddress, 'Magento\Quote\Api\Data\AddressInterface');
@@ -653,5 +652,161 @@ class Service implements ServiceInterface
         } catch (\Exception $e) {
             throw new CouldNotSaveException(__($e->getMessage()), $e);
         }
+    }
+
+    public function get_prapi_params($type)
+    {
+        switch ($type)
+        {
+            case 'cart':
+            case 'minicart':
+                return \Zend_Json::encode($this->getApplePayParams());
+            default:
+                $parts = explode(":", $type);
+
+                if ($parts[0] == "product" && is_numeric($parts[1]))
+                    return \Zend_Json::encode($this->getProductApplePayParams($parts[1]));
+                else
+                    throw new CouldNotSaveException(__("Invalid type specified for PRAPI params"));
+        }
+    }
+
+    /**
+     * Get Payment Request Params
+     * @return array
+     */
+    public function getApplePayParams()
+    {
+        if ($this->stripeHelper->hasSubscriptions())
+            return null;
+
+        return array_merge(
+            [
+                'country' => $this->getCountry(),
+                'requestPayerName' => true,
+                'requestPayerEmail' => true,
+                'requestPayerPhone' => true,
+                'requestShipping' => !$this->getQuote()->isVirtual(),
+            ],
+            $this->expressHelper->getCartItems($this->getQuote())
+        );
+    }
+
+    /**
+     * Get Payment Request Params for Single Product
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getProductApplePayParams($productId)
+    {
+        if ($this->stripeHelper->hasSubscriptions())
+            return null;
+
+        /** @var \Magento\Catalog\Model\Product $product */
+        $product = $this->stripeHelper->loadProductById($productId);
+
+        if (!$product || $product->getStripeSubEnabled()) {
+            return [];
+        }
+
+        $quote = $this->getQuote();
+
+        $currency = $quote->getQuoteCurrencyCode();
+        if (empty($currency)) {
+            $currency = $quote->getStore()->getCurrentCurrency()->getCode();
+        }
+
+        // Get Current Items in Cart
+        $params = $this->expressHelper->getCartItems($quote);
+        $amount = $params['total']['amount'];
+        $items = $params['displayItems'];
+
+        $shouldInclTax = $this->expressHelper->shouldCartPriceInclTax($quote->getStore());
+        if ($this->expressHelper->getStoreConfig('payment/stripe_payments/use_store_currency')) {
+            $convertedFinalPrice = $this->priceCurrency->convertAndRound(
+                $product->getFinalPrice(),
+                null,
+                $currency
+            );
+
+            $price = $this->expressHelper->getProductDataPrice(
+                $product,
+                $convertedFinalPrice,
+                $shouldInclTax,
+                $quote->getCustomerId(),
+                $quote->getStore()->getStoreId()
+            );
+        } else {
+            $price = $this->expressHelper->getProductDataPrice(
+                $product,
+                $product->getFinalPrice(),
+                $shouldInclTax,
+                $quote->getCustomerId(),
+                $quote->getStore()->getStoreId()
+            );
+        }
+
+        // Append Current Product
+        $productTotal = $this->expressHelper->getAmountCents($price, $currency);
+        $amount += $productTotal;
+
+        $items[] = [
+            'label' => $product->getName(),
+            'amount' => $productTotal,
+            'pending' => false
+        ];
+
+        return [
+            'country' => $this->getCountry(),
+            'currency' => strtolower($currency),
+            'total' => [
+                'label' => $this->getLabel(),
+                'amount' => $amount,
+                'pending' => true
+            ],
+            'displayItems' => $items,
+            'requestPayerName' => true,
+            'requestPayerEmail' => true,
+            'requestPayerPhone' => true,
+            'requestShipping' => $this->expressHelper->shouldRequestShipping($quote, $product),
+        ];
+    }
+
+    /**
+     * Get Quote
+     * @return \Magento\Quote\Model\Quote
+     */
+    public function getQuote()
+    {
+        $quote = $this->checkoutHelper->getCheckout()->getQuote();
+        if (!$quote->getId()) {
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $quote = $objectManager->create('Magento\Checkout\Model\Session')->getQuote();
+        }
+
+        return $quote;
+    }
+
+    /**
+     * Get Country Code
+     * @return string
+     */
+    public function getCountry()
+    {
+        $countryCode = $this->getQuote()->getBillingAddress()->getCountryId();
+        if (empty($countryCode)) {
+            $countryCode = $this->expressHelper->getDefaultCountry();
+        }
+        return $countryCode;
+    }
+
+    /**
+     * Get Label
+     * @return string
+     */
+    public function getLabel()
+    {
+        return $this->expressHelper->getLabel($this->getQuote());
     }
 }

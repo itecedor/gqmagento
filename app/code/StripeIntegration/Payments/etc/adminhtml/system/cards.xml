@@ -59,6 +59,12 @@
       </depends>
       <config_path>payment/stripe_payments/automatic_invoicing</config_path>
     </field>
+    <field id="moto_exemptions" translate="label" type="select" sortOrder="107" showInDefault="1" showInWebsite="1" showInStore="1">
+      <label>SCA MOTO Exemptions</label>
+      <comment>Only enable this if your Stripe account has been gated to use MOTO exemptions.</comment>
+      <source_model>StripeIntegration\Payments\Model\Adminhtml\Source\Enabled</source_model>
+      <config_path>payment/stripe_payments/moto_exemptions</config_path>
+    </field>
     <field id="radar_risk_level" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
       <label>Hold Elevated Risk Orders</label>
       <comment>
@@ -84,12 +90,6 @@
       <comment>Choose "Yes" to use store view currency instead of base currency.</comment>
       <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
       <config_path>payment/stripe_payments/use_store_currency</config_path>
-    </field>
-    <field id="receipt_email" translate="label" type="select" sortOrder="170" showInDefault="1" showInWebsite="1" showInStore="1">
-      <label>Enable Stripe email receipts</label>
-      <comment>Let Stripe send customized email receipts for successful payments and refunds.</comment>
-      <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-      <config_path>payment/stripe_payments/receipt_email</config_path>
     </field>
     <field id="allowspecific" translate="label" type="allowspecific" sortOrder="180" showInDefault="1" showInWebsite="1" showInStore="1">
      <label>Payment From Applicable Countries</label>

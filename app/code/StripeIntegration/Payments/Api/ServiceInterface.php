@@ -13,24 +13,13 @@ interface ServiceInterface
     public function redirect_url();
 
     /**
-     * Refunds any dangling PIs for the order and creates a new one for the checkout session
-     *
-     * @api
-     * @param string|null $status
-     * @param string|null $response
-     *
-     * @return mixed Json object containing the new PI ID.
-     */
-    public function reset_payment_intent($status, $response);
-
-    /**
-    * Invalidates the cache for the locally saved Payment Intent
+    * Gets the created payment intent at the checkout
     *
     * @api
     *
-    * @return mixed
+    * @return mixed Json object containing the new PI ID.
     */
-    public function payment_intent_refresh();
+    public function get_payment_intent();
 
     /**
      * Estimate Shipping by Address
@@ -91,4 +80,14 @@ interface ServiceInterface
      * @return string
      */
     public function get_cart();
+
+    /**
+     * Get PR API params to initialize Stripe Express buttons
+     *
+     * @api
+     * @param string $type
+     *
+     * @return mixed Json object with params
+     */
+    public function get_prapi_params($type);
 }

@@ -12,13 +12,25 @@ class WebhooksObserver implements ObserverInterface
         \StripeIntegration\Payments\Helper\Webhooks $webhooksHelper,
         \StripeIntegration\Payments\Helper\Generic $paymentsHelper,
         \StripeIntegration\Payments\Model\Config $config,
-        \Magento\Sales\Model\Order\Email\Sender\OrderCommentSender $orderCommentSender
+        \StripeIntegration\Payments\Helper\RecurringOrder $recurringOrderHelper,
+        \Magento\Sales\Model\Order\Email\Sender\OrderCommentSender $orderCommentSender,
+        \Magento\Sales\Model\Service\InvoiceService $invoiceService,
+        \Magento\Framework\DB\Transaction $dbTransaction,
+        \StripeIntegration\Payments\Model\StripeCustomer $stripeCustomer,
+        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\Framework\App\CacheInterface $cache
     )
     {
         $this->webhooksHelper = $webhooksHelper;
         $this->paymentsHelper = $paymentsHelper;
         $this->config = $config;
+        $this->recurringOrderHelper = $recurringOrderHelper;
         $this->orderCommentSender = $orderCommentSender;
+        $this->_stripeCustomer = $stripeCustomer;
+        $this->_eventManager = $eventManager;
+        $this->invoiceService = $invoiceService;
+        $this->dbTransaction = $dbTransaction;
+        $this->cache = $cache;
     }
 
     protected function orderAgeLessThan($minutes, $order)
@@ -26,6 +38,25 @@ class WebhooksObserver implements ObserverInterface
         $created = strtotime($order->getCreatedAt());
         $now = time();
         return (($now - $created) < ($minutes * 60));
+    }
+
+    public function wasCapturedFromAdmin($object)
+    {
+        if (!empty($object['id']) && $this->cache->load("admin_captured_" . $object['id']))
+            return true;
+
+        if (!empty($object['payment_intent']) && is_string($object['payment_intent']) && $this->cache->load("admin_captured_" . $object['payment_intent']))
+            return true;
+
+        return false;
+    }
+
+    public function wasRefundedFromAdmin($object)
+    {
+        if (!empty($object['id']) && $this->cache->load("admin_refunded_" . $object['id']))
+            return true;
+
+        return false;
     }
 
     /**
@@ -43,21 +74,22 @@ class WebhooksObserver implements ObserverInterface
 
         switch ($eventName)
         {
-            // The following can trigger when:
-            // 1. A merchant uses the Stripe Dashboard to manually capture a payment intent that was Authorized Only
-            // 2. When a normal order is placed at the checkout, in which case we need to ignore this
-            case 'stripe_payments_webhook_payment_intent_succeeded':
+            // Creates an invoice for an order when the payment is captured from the Stripe dashboard
+            case 'stripe_payments_webhook_charge_captured':
 
-                // This is scenario 2 which we need to ignore
-                if (empty($order) || $this->orderAgeLessThan($minutes = 3, $order))
-                    throw new WebhookException("Ignoring", 202);
+                if (empty($arrEvent['data']['object']['payment_intent']))
+                    return;
 
-                $paymentIntentId = $arrEvent['data']['object']['id'];
+                $paymentIntentId = $arrEvent['data']['object']['payment_intent'];
+
                 $captureCase = \Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE;
                 $params = [
-                    "amount" => $arrEvent['data']['object']['amount_received'],
+                    "amount" => ($arrEvent['data']['object']['amount'] - $arrEvent['data']['object']['amount_refunded']),
                     "currency" => $arrEvent['data']['object']['currency']
                 ];
+
+                if ($this->wasCapturedFromAdmin($arrEvent['data']['object']))
+                    return;
 
                 $this->paymentsHelper->invoiceOrder($order, $paymentIntentId, $captureCase, $params);
 
@@ -67,9 +99,43 @@ class WebhooksObserver implements ObserverInterface
 
                 break;
 
+            case 'stripe_payments_webhook_charge_refunded':
             case 'stripe_payments_webhook_charge_refunded_card':
 
+                if ($this->wasRefundedFromAdmin($object))
+                    return;
+
                 $this->webhooksHelper->refund($order, $object);
+                break;
+
+            case 'stripe_payments_webhook_payment_intent_succeeded_fpx':
+
+                $paymentIntentId = $arrEvent['data']['object']['id'];
+                $captureCase = \Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE;
+                $params = [
+                    "amount" => $arrEvent['data']['object']['amount_received'],
+                    "currency" => $arrEvent['data']['object']['currency']
+                ];
+
+                $invoice = $this->paymentsHelper->invoiceOrder($order, $paymentIntentId, $captureCase, $params);
+
+                $payment = $order->getPayment();
+                $transactionType = \Magento\Sales\Model\Order\Payment\Transaction::TYPE_CAPTURE;
+                $payment->setLastTransId($paymentIntentId);
+                $payment->setTransactionId($paymentIntentId);
+                $transaction = $payment->addTransaction($transactionType, $invoice, true);
+                $transaction->save();
+
+                $comment = __("Payment succeeded.");
+                $order->addStatusToHistory($status = \Magento\Sales\Model\Order::STATE_PROCESSING, $comment, $isCustomerNotified = false)
+                    ->save();
+
+                break;
+
+            case 'stripe_payments_webhook_payment_intent_payment_failed_fpx':
+
+                $this->paymentsHelper->cancelOrCloseOrder($order);
+                $this->addOrderCommentWithEmail($order, "Your order has been canceled because the payment authorization failed.");
                 break;
 
             case 'stripe_payments_webhook_source_chargeable_bancontact':
@@ -156,6 +222,22 @@ class WebhooksObserver implements ObserverInterface
                 $this->addOrderCommentWithEmail($order, "Your order has been canceled. The payment authorization succeeded, however the authorizing provider declined the payment when a charge was attempted.");
                 break;
 
+            // Recurring subscription payments
+            case 'stripe_payments_webhook_invoice_payment_succeeded':
+                // If this is a subscription order which was just placed, create an invoice for the order and return
+                if ($this->orderAgeLessThan(30, $order))
+                    $this->paymentSucceeded($stdEvent, $order);
+                else
+                {
+                    // Otherwise, this is a recurring payment, so create a brand new order based on the original one
+                    $invoiceId = $stdEvent->data->object->id;
+                    $this->recurringOrderHelper->createFromInvoiceId($invoiceId);
+                }
+                break;
+            case 'stripe_payments_webhook_invoice_payment_failed':
+                //$this->paymentFailed($event);
+                break;
+
             default:
                 # code...
                 break;
@@ -167,5 +249,86 @@ class WebhooksObserver implements ObserverInterface
         $order->addStatusToHistory($status = false, $comment, $isCustomerNotified = true);
         $this->orderCommentSender->send($order, $notify = true, $comment);
         $order->save();
+    }
+
+
+    private function getSubscriptionID($event)
+    {
+        if (empty($event->type))
+            throw new \Exception("Invalid event data");
+
+        switch ($event->type)
+        {
+            case 'invoice.payment_succeeded':
+            case 'invoice.payment_failed':
+                if (!empty($event->data->object->subscription))
+                    return $event->data->object->subscription;
+
+                foreach ($event->data->object->lines->data as $data)
+                {
+                    if ($data->type == "subscription")
+                        return $data->id;
+                }
+
+                return null;
+
+            case 'customer.subscription.deleted':
+                if (!empty($event->data->object->id))
+                    return $event->data->object->id;
+                break;
+
+            default:
+                return null;
+        }
+    }
+
+    public function paymentSucceeded($event, $order)
+    {
+        $subscriptionId = $this->getSubscriptionID($event);
+        $paymentIntentId = $event->data->object->payment_intent;
+
+        if (!isset($subscriptionId))
+            throw new WebhookException(__("Received {$event->type} webhook but could not read the subscription object."));
+
+        $subscription = \Stripe\Subscription::retrieve($subscriptionId);
+
+        $metadata = $subscription->metadata;
+
+        if (!empty($metadata->{'Order #'}))
+            $orderId = $metadata->{'Order #'};
+        else
+            throw new WebhookException(__("The webhook request has no Order ID in its metadata - ignoring."));
+
+        if (!empty($metadata->{'Product ID'}))
+            $productId = $metadata->{'Product ID'};
+        else
+            throw new WebhookException(__("The webhook request has no product ID in its metadata - ignoring."));
+
+        $currency = strtoupper($event->data->object->currency);
+
+        if (isset($event->data->object->amount_paid))
+            $amountPaid = $event->data->object->amount_paid;
+        else if (isset($event->data->object->total))
+            $amountPaid = $event->data->object->total;
+        else
+            $amountPaid = $subscription->amount;
+
+        if ($amountPaid <= 0)
+        {
+            $order->addStatusToHistory(
+                $status = false,
+                "This is a trialing subscription order, no payment has been collected yet. A new order will be created upon payment.",
+                $isCustomerNotified = false
+            );
+            $order->save();
+            return;
+        }
+
+        return $this->paymentsHelper->invoiceOrder(
+            $order,
+            $paymentIntentId,
+            \Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE,
+            ["amount" => $amountPaid, "currency" => $currency]
+        );
     }
 }

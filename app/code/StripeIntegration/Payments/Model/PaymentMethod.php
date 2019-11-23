@@ -7,8 +7,6 @@ use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NotFoundException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
-use Magento\Payment\Gateway\Config\ValueHandlerPoolInterface;
-use Magento\Payment\Gateway\Data\PaymentDataObjectFactory;
 use Magento\Payment\Gateway\Validator\ValidatorPoolInterface;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Model\MethodInterface;
@@ -18,6 +16,7 @@ use Psr\Log\LoggerInterface;
 use Magento\Framework\Validator\Exception;
 use StripeIntegration\Payments\Helper\Logger;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
+use Magento\Framework\Exception\CouldNotSaveException;
 
 class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
 {
@@ -39,8 +38,8 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
      */
     public function __construct(
         \Magento\Framework\Event\ManagerInterface $eventManager,
-        ValueHandlerPoolInterface $valueHandlerPool,
-        PaymentDataObjectFactory $paymentDataObjectFactory,
+        \Magento\Payment\Gateway\Config\ValueHandlerPoolInterface $valueHandlerPool,
+        \Magento\Payment\Gateway\Data\PaymentDataObjectFactory $paymentDataObjectFactory,
         $code,
         $formBlockType,
         $infoBlockType,
@@ -50,6 +49,7 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
         \StripeIntegration\Payments\Model\StripeCustomer $customer,
         \StripeIntegration\Payments\Model\PaymentIntent $paymentIntent,
         \Magento\Checkout\Helper\Data $checkoutHelper,
+        \Magento\Framework\App\CacheInterface $cache,
         LoggerInterface $logger,
         CommandPoolInterface $commandPool = null,
         ValidatorPoolInterface $validatorPool = null
@@ -61,6 +61,8 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
         $this->customer = $customer;
         $this->paymentIntent = $paymentIntent;
         $this->checkoutHelper = $checkoutHelper;
+        $this->cache = $cache;
+
         $this->saveCards = $config->getSaveCards();
         $this->eventManager = $eventManager;
 
@@ -82,11 +84,15 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
 
         // Reset a previously initialized 3D Secure session
         $info->setAdditionalInformation('stripejs_token', null)
-             ->setAdditionalInformation('switch_subscription', null);
+             ->setAdditionalInformation('save_card', null)
+             ->setAdditionalInformation('token', null);
     }
 
     public function assignData(\Magento\Framework\DataObject $data)
     {
+        if ($this->helper->isMultiShipping())
+            $data['cc_save'] = 1;
+
         parent::assignData($data);
 
         if ($this->config->getIsStripeAPIKeyError())
@@ -116,7 +122,7 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
 
             $this->resetPaymentData();
             $info->setAdditionalInformation('token', $card[0]);
-            $this->paymentIntent->setPaymentMethod($card[0], $data['cc_save']);
+            $info->setAdditionalInformation('save_card', $data['cc_save']);
 
             return $this;
         }
@@ -126,45 +132,16 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
             return $this;
 
         $card = explode(':', $data['cc_stripejs_token']);
+        $data['cc_stripejs_token'] = $card[0]; // To be used by Stripe Subscriptions
 
         // Security check: If Stripe Elements is enabled, only accept source tokens and saved cards
         if (!$this->helper->isValidToken($card[0]))
             $this->helper->dieWithError("Sorry, we could not perform a card security check. Please contact us to complete your purchase.");
 
-        $data['cc_stripejs_token'] = $card[0]; // To be used by Stripe Subscriptions
-
         $this->resetPaymentData();
         $token = $card[0];
         $info->setAdditionalInformation('stripejs_token', $token);
-        $this->paymentIntent->setPaymentMethod($token, $data['cc_save']);
-
-        $params = ["card" => $card[0]];
-
-        $token = $params['card'];
-
-        // With multi-shipping, we want to add the card now and make it the default payment source, so that
-        // multiple orders can later be placed by Magento using this card
-        if ($this->helper->isMultiShipping())
-        {
-            try
-            {
-                $card = $this->customer->addSavedCard($token);
-                $token = $card->id;
-            }
-            catch (\Stripe\Error\Card $e)
-            {
-                $this->helper->dieWithError($e->getMessage());
-            }
-            catch (\Stripe\Error $e)
-            {
-                $this->helper->dieWithError($e->getMessage(), $e);
-            }
-            catch (\Exception $e)
-            {
-                $this->helper->dieWithError("An error has occured. Please contact us to complete your order.", $e);
-            }
-        }
-
+        $info->setAdditionalInformation('save_card', $data['cc_save']);
         $info->setAdditionalInformation('token', $token);
 
         return $this;
@@ -174,7 +151,7 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
     {
         if ($amount > 0)
         {
-            $this->paymentIntent->confirmAndAssociateWithOrder($payment->getOrder());
+            $this->paymentIntent->confirmAndAssociateWithOrder($payment->getOrder(), $payment);
         }
 
         return $this;
@@ -199,11 +176,13 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
                         $pi = \Stripe\PaymentIntent::retrieve($token);
                         $ch = $pi->charges->data[0];
                         $paymentObject = $pi;
+                        $amountToCapture = "amount_to_capture";
                     }
                     else
                     {
                         $ch = \Stripe\Charge::retrieve($token);
                         $paymentObject = $ch;
+                        $amountToCapture = "amount";
                     }
 
                     if ($this->config->useStoreCurrency())
@@ -234,7 +213,9 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
                         return $this;
                     }
 
-                    $paymentObject->capture(array('amount' => round($finalAmount * $cents)));
+                    $paymentObject->capture(array($amountToCapture => round($finalAmount * $cents)));
+
+                    $this->cache->save($value = "1", $key = "admin_captured_" . $paymentObject->id, ["stripe_payments"], $lifetime = 60 * 60);
                 }
                 catch (\Exception $e)
                 {
@@ -248,7 +229,7 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
             }
             else
             {
-                $this->paymentIntent->confirmAndAssociateWithOrder($payment->getOrder());
+                $this->paymentIntent->confirmAndAssociateWithOrder($payment->getOrder(), $payment);
             }
         }
 
@@ -314,13 +295,14 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
             }
             else
             {
-                $charge = \Stripe\Charge::retrieve($transactionId);
+                $charge = $this->api->retrieveCharge($transactionId);
             }
 
             // This is true when an authorization has expired or when there was a refund through the Stripe account
             if (!$charge->refunded)
             {
                 $charge->refund($params);
+                $this->cache->save($value = "1", $key = "admin_refunded_" . $charge->id, ["stripe_payments"], $lifetime = 60 * 60);
                 // \Stripe\Refund::create($params);
 
                 $refundId = $this->helper->getRefundIdFrom($charge);
@@ -368,6 +350,37 @@ class PaymentMethod extends \Magento\Payment\Model\Method\Adapter
     public function denyPayment(InfoInterface $payment)
     {
         return parent::denyPayment($payment);
+    }
+
+    public function canCapture()
+    {
+        $hasSubscriptions = false;
+
+        if ($this->helper->isAdmin())
+        {
+            $orderId = $this->getInfoInstance()->getParentId();
+            if (!is_numeric($orderId))
+                return parent::canCapture();
+
+            $order = $this->helper->loadOrderById($orderId);
+            if (!$order)
+                return parent::canCapture();
+
+            $hasSubscriptions = $this->helper->hasSubscriptionsIn($order->getAllItems());
+        }
+
+        return !$hasSubscriptions && parent::canCapture();
+    }
+
+    // The reasoning for overwriting the payment action is that subscription invoices should not be generated at order time
+    // instead they should be generated upon an invoice.payment_succeeded webhook arrival
+    public function getConfigPaymentAction()
+    {
+        $action = parent::getConfigPaymentAction();
+        if ($action == \Magento\Payment\Model\Method\AbstractMethod::ACTION_AUTHORIZE || $this->helper->hasSubscriptions())
+            return \Magento\Payment\Model\Method\AbstractMethod::ACTION_AUTHORIZE;
+
+        return $action;
     }
 
     // Fixes https://github.com/magento/magento2/issues/5413 in Magento 2.1

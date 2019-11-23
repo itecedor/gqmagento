@@ -1082,7 +1082,7 @@ class MobileDetect {
     {
         // make sure the name starts with 'is', otherwise
         if (substr($name, 0, 2) !== 'is') {
-            throw new BadMethodCallException("No such method exists: $name");
+            throw new \Exception("No such method exists: $name");
         }
 
         $this->setDetectionType(self::DETECTION_TYPE_MOBILE);
@@ -1287,7 +1287,7 @@ class MobileDetect {
         $arrVer = explode('.', $ver, 2);
 
         if (isset($arrVer[1])) {
-            $arrVer[1] = @str_replace('.', '', $arrVer[1]); // @todo: treat strings versions.
+            $arrVer[1] = str_replace('.', '', $arrVer[1]); // @todo: treat strings versions.
         }
 
         return (float) implode('.', $arrVer);

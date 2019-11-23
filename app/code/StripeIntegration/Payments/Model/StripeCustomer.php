@@ -14,6 +14,7 @@ class StripeCustomer extends \Magento\Framework\Model\AbstractModel
     var $_magentoCustomer = null;
 
     public $customerCard = null;
+    public $paymentMethodsCache = [];
 
     /**
      * @param \Magento\Framework\Model\Context $context
@@ -62,7 +63,7 @@ class StripeCustomer extends \Magento\Framework\Model\AbstractModel
 
         $this->_magentoCustomerId = $this->_helper->getCustomerId();
 
-        if (is_numeric($this->_magentoCustomerId) && !$this->getStripeId())
+        if (is_numeric($this->_magentoCustomerId) && $this->_magentoCustomerId > 0 && !$this->getStripeId())
         {
             $this->load($this->_magentoCustomerId, 'customer_id');
             $this->updateSessionId();
@@ -89,74 +90,26 @@ class StripeCustomer extends \Magento\Framework\Model\AbstractModel
             $sessionId = $this->_customerSession->getSessionId();
             $this->load($sessionId, 'session_id');
         }
-
-        if (!$this->getStripeId() && ($this->_config->getSaveCards() || $this->_config->alwaysSaveCards()))
-        {
-            try
-            {
-                $this->createStripeCustomerIfNotExists();
-            }
-            catch (\StripeIntegration\Payments\Exception\SilentException $e)
-            {
-                return;
-            }
-        }
-        // $this->_magentoCustomer = $this->_customerSession->getCustomer();
     }
 
-    public function loadFromPayment($payment)
+    public function loadFromData($customerStripeId, $customerObject)
     {
-        if (empty($payment))
+        if (empty($customerObject))
             return null;
 
-        $method = $payment->getMethod();
-        if (strpos($method, "stripe_") !== 0)
+        if (empty($customerStripeId))
             return null;
 
-        $stripeId = $payment->getAdditionalInformation('customer_stripe_id');
-        if (empty($stripeId))
-        {
-            // Try to load from the src_ token instead, for older versions of the module
-            $sourceId = $payment->getAdditionalInformation('source_id');
-            if (empty($sourceId))
-                $sourceId = $payment->getAdditionalInformation('token');
-            if (empty($sourceId))
-                $sourceId = $payment->getAdditionalInformation('stripejs_token');
-            if (empty($sourceId))
-                return null;
-
-            try
-            {
-                // Used by Bancontact, iDEAL etc
-                if (strpos($sourceId, "src_") === 0)
-                    $object = \Stripe\Source::retrieve($sourceId);
-                // Used by card payments
-                else if (strpos($sourceId, "pm_") === 0)
-                    $object = \Stripe\PaymentMethod::retrieve($sourceId);
-                else
-                    return null;
-
-                if (empty($object->customer))
-                    return null;
-
-                $stripeId = $object->customer;
-            }
-            catch (\Exception $e)
-            {
-                 return null;
-            }
-        }
-
-        $this->load($stripeId, 'stripe_id');
+        $this->load($customerStripeId, 'stripe_id');
 
         // For older orders placed by customers that are out of sync
         if (empty($this->getStripeId()))
         {
-            $this->setStripeId($stripeId);
+            $this->setStripeId($customerStripeId);
             $this->setLastRetrieved(time());
         }
 
-        $this->_stripeCustomer = \Stripe\Customer::retrieve($stripeId);
+        $this->_stripeCustomer = $customerObject;
 
         return $this;
     }
@@ -201,7 +154,7 @@ class StripeCustomer extends \Magento\Framework\Model\AbstractModel
         return $this->_stripeCustomer;
     }
 
-    public function createStripeCustomer($order = null)
+    public function createStripeCustomer($order = null, $params = null)
     {
         $customer = $this->_helper->getMagentoCustomer();
 
@@ -222,10 +175,22 @@ class StripeCustomer extends \Magento\Framework\Model\AbstractModel
             $customerEmail = $address->getEmail();
             $customerId = 0;
         }
+        else if ($this->_helper->isAdmin())
+        {
+            // New customer order placed from the admin area
+            $quote = $this->_helper->getBackendSessionQuote();
+            $quoteModel = $this->_helper->loadQuoteById($quote->getQuoteId());
+            $address = $quoteModel->getBillingAddress();
+            $customerFirstname = $address->getFirstname();
+            $customerLastname = $address->getLastname();
+            $customerEmail = $quoteModel->getCustomerEmail();
+            $customerId = 0;
+        }
         else
         {
             // Guest customer at checkout, with Always Save Cards enabled, or with subscriptions in the cart
             $quote = $this->_helper->getSessionQuote();
+
             if ($quote)
             {
                 $address = $quote->getBillingAddress();
@@ -249,17 +214,20 @@ class StripeCustomer extends \Magento\Framework\Model\AbstractModel
         // if (empty($customerId))
         //     $customerId = -1;
 
-        return $this->createNewStripeCustomer($customerFirstname, $customerLastname, $customerEmail, $customerId);
+        return $this->createNewStripeCustomer($customerFirstname, $customerLastname, $customerEmail, $customerId, $params);
     }
 
-    public function createNewStripeCustomer($customerFirstname, $customerLastname, $customerEmail, $customerId)
+    public function createNewStripeCustomer($customerFirstname, $customerLastname, $customerEmail, $customerId, $params = null)
     {
         try
         {
-            $this->_stripeCustomer = \Stripe\Customer::create([
-              "description" => "$customerFirstname $customerLastname",
-              "email" => $customerEmail
-            ]);
+            if (empty($params))
+                $params = [];
+
+            $params["description"] = "$customerFirstname $customerLastname";
+            $params["email"] = $customerEmail;
+
+            $this->_stripeCustomer = \Stripe\Customer::create($params);
             $this->_stripeCustomer->save();
 
             $this->setStripeId($this->_stripeCustomer->id);
@@ -407,16 +375,21 @@ class StripeCustomer extends \Magento\Framework\Model\AbstractModel
     }
 
     // Used in the html templates to generate the customer's saved cards options
-    public function getCustomerCards($isAdmin = false, $customerId = null)
+    public function getCustomerCards($customerId = null)
     {
+        $isAdmin = $this->_helper->isAdmin();
+
         if (!$this->_config->getSaveCards() && !$isAdmin)
-            return array();
+            return [];
+
+        if (!$isAdmin && $this->_helper->isGuest())
+            return [];
 
         if (!$customerId)
             $customerId = $this->getCustomerId();
 
         if (!$this->getStripeId())
-            return array();
+            return [];
 
 
         if (!$this->_stripeCustomer)
@@ -426,24 +399,6 @@ class StripeCustomer extends \Magento\Framework\Model\AbstractModel
             return null;
 
         return $this->listCards();
-    }
-
-    public function getDefaultSavedCardFrom(\Magento\Payment\Model\InfoInterface $payment)
-    {
-        $card = $payment->getAdditionalInformation('token');
-
-        if (strstr($card, 'card_') !== false)
-            return $card;
-
-        if (strstr($card, 'card_') === false)
-        {
-            // $cards will be NULL if the customer has no cards
-            $cards = $this->listCards();
-            if (is_array($cards) && !empty($cards[0]))
-                return $cards[0]->id;
-        }
-
-        return null;
     }
 
     public function getSubscriptions($params = null)
@@ -482,7 +437,11 @@ class StripeCustomer extends \Magento\Framework\Model\AbstractModel
         if (!$customer)
             return null;
 
-        $pm = \Stripe\PaymentMethod::retrieve($paymentMethodId);
+        if (isset($this->paymentMethodsCache[$paymentMethodId]))
+            $pm = $this->paymentMethodsCache[$paymentMethodId];
+        else
+            $pm = $this->paymentMethodsCache[$paymentMethodId] = \Stripe\PaymentMethod::retrieve($paymentMethodId);
+
         if (!isset($pm->card->fingerprint))
             return null;
 

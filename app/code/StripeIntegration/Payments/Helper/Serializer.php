@@ -19,17 +19,17 @@ class Serializer
 
     public function serialize($data)
     {
-        // if (!empty($this->serializer))
-        //     return $this->serializer->serialize($data);
+        if (empty($this->serializer))
+            return null;
 
-        return serialize($data);
+        return $this->serializer->serialize($data);
     }
 
     public function unserialize($data)
     {
-        // if (!empty($this->serializer))
-        //     return $this->serializer->unserialize($data);
+        if (empty($this->serializer))
+            return null;
 
-        return unserialize($data);
+        return $this->serializer->unserialize($data);
     }
 }

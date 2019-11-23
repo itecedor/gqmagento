@@ -55,7 +55,7 @@ class Info extends ConfigurableInfo
         $_info = $this->getInfo();
 
         $source_info = $_info->getAdditionalInformation('source_info');
-        $source_info = @json_decode($source_info, true);
+        $source_info = json_decode($source_info, true);
 
         if ($source_info) {
             $result = [];

@@ -17,7 +17,6 @@ class Form extends \Magento\Payment\Block\Form\Cc
         \StripeIntegration\Payments\Model\StripeCustomer $stripeCustomer,
         \Magento\Framework\App\ProductMetadataInterface $productMetadata,
         \StripeIntegration\Payments\Helper\Generic $helper,
-        \StripeIntegration\Payments\Model\PaymentIntent $paymentIntent,
         \Magento\Framework\Data\Form\FormKey $formKey,
         array $data = []
     ) {
@@ -26,7 +25,6 @@ class Form extends \Magento\Payment\Block\Form\Cc
         $this->stripeCustomer = $stripeCustomer;
         $this->productMetadata = $productMetadata;
         $this->helper = $helper;
-        $this->paymentIntent = $paymentIntent;
         $this->formKey = $formKey;
     }
 
@@ -38,21 +36,6 @@ class Form extends \Magento\Payment\Block\Form\Cc
     public function getCustomerCards()
     {
         return $this->stripeCustomer->getCustomerCards();
-    }
-
-    public function getSwitchSubscriptionBlock()
-    {
-        try
-        {
-            if (class_exists('StripeIntegration\Subscriptions\Block\Form'))
-                return $this->getLayout()->createBlock('StripeIntegration\Subscriptions\Block\Form');
-
-            return null;
-        }
-        catch (\Exception $e)
-        {
-            return null;
-        }
     }
 
     public function isSinglePaymentMethod()
@@ -77,11 +60,6 @@ class Form extends \Magento\Payment\Block\Form\Cc
             return true;
 
         return false;
-    }
-
-    public function getPaymentIntent()
-    {
-        return $this->paymentIntent->create()->getClientSecret();
     }
 
     public function cardType($code)

@@ -7,14 +7,8 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
-    <route url="/V1/stripe/payments/reset_payment_intent" method="POST">
-        <service class="StripeIntegration\Payments\Api\ServiceInterface" method="reset_payment_intent"/>
-        <resources>
-            <resource ref="anonymous"/>
-        </resources>
-    </route>
-    <route url="/V1/stripe/payments/payment_intent_refresh" method="GET">
-        <service class="StripeIntegration\Payments\Api\ServiceInterface" method="payment_intent_refresh"/>
+    <route url="/V1/stripe/payments/get_payment_intent" method="POST">
+        <service class="StripeIntegration\Payments\Api\ServiceInterface" method="get_payment_intent"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
@@ -63,4 +57,10 @@
         </resources>
     </route>
 
+    <route url="/V1/stripe/payments/get_prapi_params" method="POST">
+        <service class="StripeIntegration\Payments\Api\ServiceInterface" method="get_prapi_params"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

@@ -1,6 +1,6 @@
 <?php
 
-namespace StripeIntegration\Payments\Model\Method;
+namespace StripeIntegration\Payments\Model\Method\Api;
 
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
@@ -8,7 +8,7 @@ use Magento\Payment\Model\InfoInterface;
 use StripeIntegration\Payments\Helper;
 use StripeIntegration\Payments\Helper\Logger;
 
-abstract class Method extends \Magento\Payment\Model\Method\AbstractMethod
+abstract class Sources extends \Magento\Payment\Model\Method\AbstractMethod
 {
     protected $type = '';
 
@@ -237,9 +237,9 @@ abstract class Method extends \Magento\Payment\Model\Method\AbstractMethod
             'description' => sprintf('Order #%s by %s', $order->getIncrementId(), $order->getCustomerName()),
         ];
 
-        if ($this->config->getConfigData('receipt_email')) {
-            $params['receipt_email'] = $this->helper->getCustomerEmail();
-        }
+        $customerEmail = $this->helper->getCustomerEmail();
+        if ($customerEmail)
+            $params['receipt_email'] = $customerEmail;
 
         $params['type'] = $this->type;
         $params['owner'] = [

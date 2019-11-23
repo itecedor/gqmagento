@@ -4,7 +4,7 @@ namespace StripeIntegration\Payments\Model\Adminhtml\Notifications;
 
 class WebhooksUnconfigured implements \Magento\Framework\Notification\MessageInterface
 {
-    public $stripeWebhooksConfigurationLink = "https://stripe.com/docs/magento/configuring#webhooks";
+    public $stripeWebhooksConfigurationLink = "https://stripe.com/docs/magento/configuration#webhooks";
 
     public function __construct(
         \StripeIntegration\Payments\Logger\Handler $logHandler

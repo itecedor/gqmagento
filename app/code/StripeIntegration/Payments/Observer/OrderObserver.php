@@ -10,11 +10,13 @@ class OrderObserver extends AbstractDataAssignObserver
 {
     public function __construct(
         \StripeIntegration\Payments\Model\Config $config,
-        \StripeIntegration\Payments\Model\PaymentIntent $paymentIntent
+        \StripeIntegration\Payments\Model\PaymentIntent $paymentIntent,
+        \StripeIntegration\Payments\Helper\Generic $helper
     )
     {
         $this->config = $config;
         $this->paymentIntent = $paymentIntent;
+        $this->helper = $helper;
     }
 
     /**
@@ -32,10 +34,6 @@ class OrderObserver extends AbstractDataAssignObserver
 
         switch ($eventName)
         {
-            case 'sales_order_place_before':
-                // We simply need to invalidate the local cache so that we don't try to update successful PIs
-                $this->paymentIntent->isSuccessful();
-                break;
             case 'sales_order_place_after':
                 $this->updateOrderState($observer);
 
@@ -56,7 +54,15 @@ class OrderObserver extends AbstractDataAssignObserver
             $order->setHoldBeforeStatus($order->getStatus());
             $order->setState(\Magento\Sales\Model\Order::STATE_HOLDED)
                 ->setStatus($order->getConfig()->getStateDefaultStatus(\Magento\Sales\Model\Order::STATE_HOLDED));
-            $order->addStatusToHistory(false, "Order placed under manual review by Stripe Radar", false);
+            $comment = __("Order placed under manual review by Stripe Radar");
+            $order->addStatusToHistory(false, $comment, false);
+            $order->save();
+        }
+
+        if ($payment->getAdditionalInformation('authentication_pending'))
+        {
+            $comment = __("Customer 3D secure authentication is pending for this order.");
+            $order->addStatusToHistory($status = \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT, $comment, $isCustomerNotified = false);
             $order->save();
         }
     }

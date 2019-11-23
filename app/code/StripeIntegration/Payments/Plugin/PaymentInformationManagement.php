@@ -51,9 +51,13 @@ class PaymentInformationManagement
         \Magento\Quote\Api\Data\AddressInterface $billingAddress
     ) {
         $subject->savePaymentInformation($cartId, $paymentMethod, $billingAddress);
-        try {
+        try
+        {
             $orderId = $this->cartManagement->placeOrder($cartId);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
+            // Unmasks errors at the checkout, such as card declined messages, authentication needed exceptions etc
             throw new CouldNotSaveException(
                 __($e->getMessage()),
                 $e

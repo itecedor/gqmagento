@@ -35,6 +35,7 @@ class Logger
 
     public static function log($obj)
     {
-        Logger::debug($obj);
+        $data = Logger::getPrintableObject($obj);
+        Logger::$logger->addInfo(print_r($data, true));
     }
 }

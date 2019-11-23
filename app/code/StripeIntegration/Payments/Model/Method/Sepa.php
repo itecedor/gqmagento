@@ -6,7 +6,7 @@ use Magento\Framework\DataObject;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Framework\Exception\LocalizedException;
 
-class Sepa extends \StripeIntegration\Payments\Model\Method\Method
+class Sepa extends \StripeIntegration\Payments\Model\Method\Api\Sources
 {
     const METHOD_CODE = 'stripe_payments_sepa';
 

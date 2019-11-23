@@ -13,8 +13,6 @@ use StripeIntegration\Payments\Helper\Logger;
 
 class Api
 {
-    protected $_trialAmount;
-
     public function __construct(
         \StripeIntegration\Payments\Model\Config $config,
         LoggerInterface $logger,
@@ -37,10 +35,24 @@ class Api
 
     public function retrieveCharge($token)
     {
+        if (empty($token))
+            return null;
+
         if (strpos($token, 'pi_') === 0)
         {
             $pi = \Stripe\PaymentIntent::retrieve($token);
+
+            if (empty($pi->charges->data[0]))
+                return null;
+
             return $pi->charges->data[0];
+        }
+        else if (strpos($token, 'in_') === 0)
+        {
+            // Subscriptions save the invoice number instead
+            $in = \Stripe\Invoice::retrieve(['id' => $token, 'expand' => ['charge']]);
+
+            return $in->charge;
         }
 
         return \Stripe\Charge::retrieve($token);
@@ -57,11 +69,51 @@ class Api
         return $this->config->getStripeParamsFrom($order);
     }
 
+    public function getPaymentDetailsFrom($payment)
+    {
+        if (empty($payment))
+            return null;
+
+        $method = $payment->getMethod();
+        if (strpos($method, "stripe_") !== 0)
+            return null;
+
+        $token = $payment->getAdditionalInformation('token');
+
+        if (empty($token))
+            $token = $payment->getAdditionalInformation('stripejs_token');
+
+        if (empty($token))
+            $token = $payment->getAdditionalInformation('source_id');
+
+        if (empty($token))
+            return null;
+
+        $params = [
+            'id' => $token,
+            'expand' => ['customer']
+        ];
+
+        // Used by card payments
+        if (strpos($token, "pm_") === 0)
+            $object = \Stripe\PaymentMethod::retrieve($params);
+        // Used by Bancontact, iDEAL etc
+        else
+            $object = \Stripe\Source::retrieve($params);
+
+        return [
+            'customer_id' => (empty($object->customer->id) ? null : $object->customer->id),
+            'customer' => $object->customer,
+            'token' => $token
+        ];
+    }
+
     public function createCharge($payment, $amount, $capture, $useSavedCard = false)
     {
         try
         {
             $order = $payment->getOrder();
+            $data = $this->getPaymentDetailsFrom($payment);
 
             $switchSubscription = $payment->getAdditionalInformation('switch_subscription');
 
@@ -76,15 +128,15 @@ class Api
             }
             else if ($useSavedCard) // We are coming here from the admin, capturing an expired authorization
             {
-                $customer = $this->_stripeCustomer->loadFromPayment($payment);
-                $token = $this->_stripeCustomer->getDefaultSavedCardFrom($payment);
-                $this->customerStripeId = $this->_stripeCustomer->getStripeId();
+                $customer = $this->_stripeCustomer->loadFromData($data['customer_id'], $data['customer']);
+                $token = $data['token'];
+                $this->customerStripeId = $data['customer_id'];
 
                 if (!$token || !$this->customerStripeId)
                 {
-                    $error = 'The authorization has expired and the customer has no saved cards to re-create the order.';
-                    $this->helper->addError($error);
-                    return;
+                    // The exception will be caught and silenced, so we explicitly add an error too
+                    $this->helper->addError("The authorization has expired and the customer has no saved cards to re-create the order");
+                    throw new LocalizedException(__("The authorization has expired and the customer has no saved cards to re-create the order."));
                 }
             }
             else
@@ -99,15 +151,6 @@ class Api
                         try
                         {
                             $this->_stripeCustomer->createStripeCustomer($order);
-
-                            // We need a saved card for subscriptions
-                            if (strpos($token, 'card_') !== 0)
-                            {
-                                $card = $this->_stripeCustomer->addSavedCard($token);
-
-                                if ($card)
-                                    $token = $card->id;
-                            }
                         }
                         catch (\StripeIntegration\Payments\Exception\SilentException $e)
                         {
@@ -121,38 +164,9 @@ class Api
 
             $params["source"] = $token;
             $params["capture"] = $capture;
-
-            // If this is a 3D Secure charge, pass the customer id
-            if ($payment->getAdditionalInformation('customer_stripe_id'))
-            {
-                $params["customer"] = $payment->getAdditionalInformation('customer_stripe_id');
-            }
-            else if ($this->_stripeCustomer->getStripeId())
-            {
-                $params["customer"] = $this->_stripeCustomer->getStripeId();
-                $payment->setAdditionalInformation('customer_stripe_id', $this->_stripeCustomer->getStripeId());
-            }
+            $params["customer"] = $data['customer_id'];
 
             $this->validateParams($params);
-
-            $amount = $params['amount'];
-            $currency = $params['currency'];
-            $cents = 100;
-            if ($this->helper->isZeroDecimal($currency))
-                $cents = 1;
-
-            $returnData = new \Magento\Framework\DataObject();
-            $returnData->setAmount($amount);
-            $returnData->setParams($params);
-            $returnData->setCents($cents);
-            $returnData->setIsDryRun(false);
-
-            $this->_eventManager->dispatch('stripe_subscriptions_create_subscriptions', array(
-                'order' => $order,
-                'returnData' => $returnData
-            ));
-
-            $params = $returnData->getParams();
 
             $fraud = false;
 
@@ -183,9 +197,14 @@ class Api
                     else
                         $this->paymentIntent->capture = \StripeIntegration\Payments\Model\PaymentIntent::CAPTURE_METHOD_MANUAL;
 
-                    $this->paymentIntent->create();
+                    if (!$this->paymentIntent->create())
+                        throw new \Exception("The payment intent could not be created");
+
                     $this->paymentIntent->setPaymentMethod($token);
-                    $pi = $this->paymentIntent->confirmAndAssociateWithOrder($payment->getOrder());
+                    $pi = $this->paymentIntent->confirmAndAssociateWithOrder($payment->getOrder(), $payment);
+                    if (!$pi)
+                        throw new \Exception("Could not create a Payment Intent for this order");
+
                     $charge = $this->retrieveCharge($pi->id);
                 }
                 else

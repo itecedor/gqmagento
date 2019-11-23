@@ -11,7 +11,7 @@ if (typeof window.checkoutConfig === 'undefined') {
 define(
     [
         'jquery',
-        'Magento_Checkout/js/model/url-builder',
+        'mage/url',
         'Magento_Catalog/product/view/validation',
         'mage/storage',
         'Magento_Ui/js/modal/alert',
@@ -22,28 +22,58 @@ define(
         'use strict';
 
         return {
+            getApplePayParams: function(type, callback)
+            {
+                var serviceUrl = urlBuilder.build('/rest/V1/stripe/payments/get_prapi_params', {}),
+                    payload = {type: type},
+                    self = this;
+
+                return storage.post(
+                    serviceUrl,
+                    JSON.stringify(payload),
+                    false
+                )
+                .fail(function (xhr, textStatus, errorThrown)
+                {
+                    console.error("Could not retrieve initialization params for Apple Pay");
+                })
+                .done(function (response)
+                {
+                    if (typeof response === 'string') {
+                        response = JSON.parse(response);
+                    }
+
+                    callback(response);
+                });
+            },
             /**
              * Init Stripe Express
              * @param element_id
              * @param apiKey
-             * @param params
+             * @param paramsType
              * @param settings
              * @param callback
              */
-            initStripeExpress: function (element_id, apiKey, params, settings, callback)
+            initStripeExpress: function (element_id, apiKey, paramsType, settings, callback)
             {
                 stripe.securityMethod = 2;
                 stripe.apiKey = apiKey;
                 var self = this;
 
-                if (stripe.stripeJsV3)
-                    this.onStripeJsLoaded(element_id, apiKey, params, settings, callback);
-                else
+                this.getApplePayParams(paramsType, function(params)
                 {
-                    stripe.loadStripeJsV3(function () {
+                    if (!params || params.length == 0)
+                        return;
+
+                    if (stripe.stripeJsV3)
                         self.onStripeJsLoaded(element_id, apiKey, params, settings, callback);
-                    });
-                }
+                    else
+                    {
+                        stripe.loadStripeJsV3(function () {
+                            self.onStripeJsLoaded(element_id, apiKey, params, settings, callback);
+                        });
+                    }
+                });
             },
 
             onStripeJsLoaded: function(element_id, apiKey, params, settings, callback)
@@ -98,7 +128,7 @@ define(
              * @param callback
              */
             placeOrder: function (result, callback) {
-                var serviceUrl = urlBuilder.createUrl('/stripe/payments/place_order', {}),
+                var serviceUrl = urlBuilder.build('/rest/V1/stripe/payments/place_order', {}),
                     payload = {result: result},
                     self = this;
 
@@ -109,9 +139,9 @@ define(
                 ).fail(function (xhr, textStatus, errorThrown) {
                     var response = JSON.parse(xhr.responseText);
 
-                    if (response.message == "Authentication Required")
+                    if (stripe.isAuthenticationRequired(response.message))
                     {
-                        stripe.authenticateCustomer(function(err)
+                        return stripe.processNextAuthentication(function(err)
                         {
                             if (err)
                                 return callback(err, { message: err }, result);
@@ -138,7 +168,7 @@ define(
              */
             addToCart: function(request, shipping_id, callback)
             {
-                var serviceUrl = urlBuilder.createUrl('/stripe/payments/addtocart', {}),
+                var serviceUrl = urlBuilder.build('/rest/V1/stripe/payments/addtocart', {}),
                     payload = {request: request, shipping_id: shipping_id},
                     self = this;
 
@@ -160,7 +190,7 @@ define(
              * @returns {*}
              */
             getCart: function(callback) {
-                var serviceUrl = urlBuilder.createUrl('/stripe/payments/get_cart', {});
+                var serviceUrl = urlBuilder.build('/rest/V1/stripe/payments/get_cart', {});
 
                 return storage.get(
                     serviceUrl,
@@ -185,7 +215,7 @@ define(
              * @returns {*}
              */
             estimateShippingCart: function(address, callback) {
-                var serviceUrl = urlBuilder.createUrl('/stripe/payments/estimate_cart', {}),
+                var serviceUrl = urlBuilder.build('/rest/V1/stripe/payments/estimate_cart', {}),
                     payload = {address: address},
                     self = this;
 
@@ -202,7 +232,7 @@ define(
             },
 
             setBillingAddress: function(data, callback) {
-                var serviceUrl = urlBuilder.createUrl('/stripe/payments/set_billing_address', {}),
+                var serviceUrl = urlBuilder.build('/rest/V1/stripe/payments/set_billing_address', {}),
                     payload = {data: data},
                     self = this;
 
@@ -226,7 +256,7 @@ define(
              * @returns {*}
              */
             applyShipping: function(address, shipping_id, callback) {
-                var serviceUrl = urlBuilder.createUrl('/stripe/payments/apply_shipping', {}),
+                var serviceUrl = urlBuilder.build('/rest/V1/stripe/payments/apply_shipping', {}),
                     payload = {address: address, shipping_id: shipping_id},
                     self = this;
 

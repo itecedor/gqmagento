@@ -10,11 +10,29 @@
     <event name="sales_order_place_after">
         <observer name="stripe_payments_place_order_after" instance="StripeIntegration\Payments\Observer\OrderObserver" />
     </event>
-    <event name="sales_quote_save_after">
-        <observer name="stripe_payments_quote_observer" instance="StripeIntegration\Payments\Observer\QuoteObserver" />
-    </event>
     <event name="shortcut_buttons_container">
         <observer name="stripe_payments_express_buttons" instance="StripeIntegration\Payments\Observer\AddExpressButton"/>
+    </event>
+
+    <event name="payment_method_is_active">
+        <observer name="stripe_payments_method_active" instance="StripeIntegration\Payments\Observer\PaymentMethodActiveObserver" />
+    </event>
+    <event name="customer_register_success">
+        <observer name="stripe_customer_register_success" instance="StripeIntegration\Payments\Observer\CustomerRegistration" />
+    </event>
+
+    <!-- Initial Fee -->
+    <event name="checkout_cart_product_add_after">
+        <observer name="add_initial_fee" instance="StripeIntegration\Payments\Observer\AddInitialFeeObserver" />
+    </event>
+    <event name="checkout_cart_update_items_after">
+        <observer name="update_initial_fee_qty" instance="StripeIntegration\Payments\Observer\QtyUpdateObserver" />
+    </event>
+    <event name="controller_action_predispatch">
+        <observer name="update_initial_fee_predispatch" instance="StripeIntegration\Payments\Observer\PredispatchObserver" />
+    </event>
+    <event name="stripe_payments_currency_switch">
+        <observer name="update_initial_fee_currency_switch" instance="StripeIntegration\Payments\Observer\CurrencySwitchObserver" />
     </event>
 
     <!-- Webhooks -->
@@ -22,8 +40,31 @@
         <observer name="stripe_payments_webhook_charge_refunded_card_observer"
             instance="StripeIntegration\Payments\Observer\WebhooksObserver" />
     </event>
-    <event name="stripe_payments_webhook_payment_intent_succeeded">
+    <event name="stripe_payments_webhook_charge_refunded">
+        <observer name="stripe_payments_webhook_charge_refunded_observer"
+            instance="StripeIntegration\Payments\Observer\WebhooksObserver" />
+    </event>
+    <event name="stripe_payments_webhook_charge_captured">
+        <observer name="stripe_payments_webhook_charge_captured_observer"
+            instance="StripeIntegration\Payments\Observer\WebhooksObserver" />
+    </event>
+
+    <!-- FPX -->
+    <event name="stripe_payments_webhook_payment_intent_succeeded_fpx">
         <observer name="stripe_payments_webhook_payment_intent_succeeded_observer"
+            instance="StripeIntegration\Payments\Observer\WebhooksObserver" />
+    </event>
+    <event name="stripe_payments_webhook_payment_intent_payment_failed_fpx">
+        <observer name="stripe_payments_webhook_payment_intent_payment_failed_observer"
+            instance="StripeIntegration\Payments\Observer\WebhooksObserver" />
+    </event>
+
+    <event name="stripe_payments_webhook_invoice_payment_succeeded">
+        <observer name="stripe_payments_webhook_invoice_payment_succeeded_observer"
+            instance="StripeIntegration\Payments\Observer\WebhooksObserver" />
+    </event>
+    <event name="stripe_payments_webhook_invoice_payment_failed">
+        <observer name="stripe_payments_webhook_invoice_payment_failed_observer"
             instance="StripeIntegration\Payments\Observer\WebhooksObserver" />
     </event>
 

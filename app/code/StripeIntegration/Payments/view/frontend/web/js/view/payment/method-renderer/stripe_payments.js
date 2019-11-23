@@ -127,8 +127,6 @@ define(
                 }
                 , this);
 
-                stripe.paymentIntent = this.config().paymentIntent;
-
                 return this;
             },
 
@@ -150,8 +148,7 @@ define(
             onCheckoutFormRendered: function()
             {
                 var self = stripePaymentForm;
-                if (self.config().securityMethod > 0)
-                    initStripe(self.config().stripeJsKey, self.config().securityMethod);
+                initStripe({ apiKey: self.config().stripeJsKey, locale: self.config().stripeJsLocale });
             },
 
             isBillingAddressSet: function()
@@ -395,9 +392,9 @@ define(
                 var self = this;
                 var status = result.status + " " + result.statusText;
 
-                if (result.responseJSON.message == "Authentication Required")
+                if (stripe.isAuthenticationRequired(result.responseJSON.message))
                 {
-                    return stripe.authenticateCustomer(function(err)
+                    return stripe.processNextAuthentication(function(err)
                     {
                         if (err)
                         {
@@ -409,42 +406,6 @@ define(
                         self.placeOrder();
                     });
                 }
-
-                self.resetPaymentIntent(status, result.responseText, function(err, response)
-                {
-                    if (err)
-                    {
-                        self.showError(err);
-                    }
-                    else
-                    {
-                        stripe.paymentIntent = response.paymentIntent;
-                        self.isPlaceOrderActionAllowed(true);
-                    }
-                });
-            },
-
-            resetPaymentIntent: function (status, response, callback) {
-                var serviceUrl = urlBuilder.createUrl('/stripe/payments/reset_payment_intent', {});
-
-                return storage.post(
-                    serviceUrl,
-                    JSON.stringify({ status: status, response: response }),
-                    false
-                )
-                .fail(function (xhr, textStatus, errorThrown)
-                {
-                    var response = JSON.parse(xhr.responseText);
-                    callback(response.message, response);
-                })
-                .done(function (response)
-                {
-                    if (typeof response === 'string') {
-                        response = JSON.parse(response);
-                    }
-
-                    callback(null, response);
-                });
             },
 
             showError: function(message)

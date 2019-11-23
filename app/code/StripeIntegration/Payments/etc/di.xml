@@ -27,6 +27,18 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="StripeSubscriptionsFacade" type="StripeIntegration\Payments\Model\Method\Subscriptions">
+        <arguments>
+            <argument name="code" xsi:type="string">stripe_payments_subscriptions</argument>
+            <argument name="formBlockType" xsi:type="string">StripeIntegration\Payments\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">StripeIntegration\Payments\Block\Info</argument>
+            <argument name="config" xsi:type="object">StripeIntegration\Payments\Model\Config</argument>
+            <argument name="logger" xsi:type="object">Psr\Log\LoggerInterface</argument>
+            <argument name="valueHandlerPool" xsi:type="object">StripePaymentsValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">StripePaymentsValidatorPool</argument>
+        </arguments>
+    </virtualType>
+
     <!-- Configuration reader -->
     <virtualType name="StripePaymentsConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
@@ -97,6 +109,15 @@
         </arguments>
     </type>
 
+    <type name="StripeIntegration\Payments\Controller\Customer\Subscriptions">
+        <arguments>
+            <argument name="session" xsi:type="object">Magento\Customer\Model\Session</argument>
+            <argument name="helper" xsi:type="object">StripeIntegration\Payments\Helper\Generic</argument>
+            <argument name="order" xsi:type="object">Magento\Sales\Model\Order</argument>
+            <argument name="stripeCustomer" xsi:type="object">StripeIntegration\Payments\Model\StripeCustomer</argument>
+        </arguments>
+    </type>
+
     <type name="StripeIntegration\Payments\Controller\Webhooks">
         <arguments>
             <argument name="helper" xsi:type="object">StripeIntegration\Payments\Helper\Generic</argument>
@@ -152,6 +173,7 @@
     </type>
 
     <preference for="StripeIntegration\Payments\Api\ServiceInterface" type="StripeIntegration\Payments\Api\Service" />
+    <preference for="Magento\Multishipping\Controller\Checkout\OverviewPost" type="StripeIntegration\Payments\Controller\Multishipping\OverviewPost" />
 
     <!-- Payment Method Facade configuration -->
     <virtualType name="StripeExpressFacade" type="StripeIntegration\Payments\Model\Method\Express">
@@ -170,7 +192,51 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="MigrateOrders" xsi:type="object">StripeIntegration\Payments\Setup\Migrate\MigrateOrdersCommand</item>
+                <item name="MigrateAttributes" xsi:type="object">StripeIntegration\Payments\Setup\Migrate\AttributesCommand</item>
+                <item name="MigrateProductsConfiguration" xsi:type="object">StripeIntegration\Payments\Setup\Migrate\ProductConfigurationCommand</item>
+                <item name="MigrateStripeSubscriptions" xsi:type="object">StripeIntegration\Payments\Setup\Migrate\StripeSubscriptionsCommand</item>
             </argument>
         </arguments>
+    </type>
+
+    <type name="StripeIntegration\Payments\Setup\Migrate\ProductConfigurationCommand">
+        <arguments>
+            <argument name="session" xsi:type="object">Magento\Catalog\Model\ResourceModel\Product\CollectionFactory</argument>
+        </arguments>
+    </type>
+
+    <!-- Initial Fee -->
+    <type name="Magento\Quote\Model\Quote\Address\ToOrder">
+        <plugin name="addInitialFeeToOrder" type="StripeIntegration\Payments\Plugin\Quote\InitialFeeToOrder"/>
+    </type>
+    <type name="Magento\Sales\Block\Order\Totals">
+        <plugin name="addInitialFeeTotal" type="StripeIntegration\Payments\Plugin\Order\AddInitialFeeToTotalsBlock"/>
+    </type>
+    <type name="Magento\Sales\Model\Order">
+        <plugin name="setInitialFeeExtensionAfterLoad" type="StripeIntegration\Payments\Plugin\Order\LoadInitialFee"/>
+    </type>
+    <type name="Magento\Sales\Model\OrderRepository">
+        <plugin name="getInitialFeeExtensionBeforeSave" type="StripeIntegration\Payments\Plugin\Order\SaveInitialFee"/>
+    </type>
+    <type name="Magento\Sales\Model\ResourceModel\Order\Collection">
+        <plugin name="setInitialFeeExtensionAfterLoad" type="StripeIntegration\Payments\Plugin\Order\LoadInitialFeeOnCollection"/>
+    </type>
+
+    <!-- Before add to cart plugin -->
+    <type name="Magento\Checkout\Model\Cart">
+        <plugin name="beforeAddProductToCart"
+                type="StripeIntegration\Payments\Plugin\Cart\Before"
+                sortOrder="10"
+                disabled="false"/>
+    </type>
+
+    <!-- CSRF Overwrite -->
+    <type name="Magento\Framework\App\Request\CsrfValidator">
+        <plugin name="csrf_validator_skip" type="StripeIntegration\Payments\Plugin\CsrfValidatorSkip" />
+    </type>
+
+    <!-- Multishipping authorization needed redirect -->
+    <type name="Magento\Multishipping\Block\Checkout\Billing">
+        <plugin name="multishippingAuthorizationNeeded" type="StripeIntegration\Payments\Plugin\MultishippingAuthorizationRedirect" sortOrder="5" />
     </type>
 </config>

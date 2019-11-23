@@ -67,6 +67,8 @@ class Webhooks
                 $eventType .= "_" . $event['data']['object']['source']['type'];
             else if (isset($event['data']['object']['source']['object'])) // ACH bank accounts
                 $eventType .= "_" . $event['data']['object']['source']['object'];
+            else if (isset($event['data']['object']['payment_method_types']))
+                $eventType .= "_" . implode("_", $event['data']['object']['payment_method_types']);
 
             // Magento 2 event names do not allow numbers
             $eventType = str_replace("p24", "przelewy", $eventType);
@@ -122,6 +124,9 @@ class Webhooks
 
         try
         {
+            if (!isset($_SERVER['HTTP_STRIPE_SIGNATURE']))
+                throw new WebhookException("Webhook signature could not be found in the request payload", 400);
+
             $event = \Stripe\Webhook::constructEvent($payload, $_SERVER['HTTP_STRIPE_SIGNATURE'], $signingSecret);
         }
         catch(\UnexpectedValueException $e)
@@ -149,6 +154,28 @@ class Webhooks
         $this->cache->save("processed", $event['id'], array('stripe_payments_webhooks_events_processed'), 24 * 60 * 60);
     }
 
+    public function getOrderID($event)
+    {
+        if (empty($event['type']))
+            throw new \Exception("Invalid event data");
+
+        switch ($event['type'])
+        {
+            case 'invoice.payment_succeeded':
+            case 'invoice.payment_failed':
+
+                foreach ($event['data']['object']['lines']['data'] as $data)
+                {
+                    if ($data['type'] == "subscription")
+                        return $data['metadata']['Order #'];
+                }
+
+                return null;
+
+            default:
+                return null;
+        }
+    }
     public function loadOrderFromEvent($event)
     {
         $object = $event['data']['object'];
@@ -156,12 +183,12 @@ class Webhooks
         if (isset($object['payment_intent']))
             $pi = \Stripe\PaymentIntent::retrieve($object['payment_intent']);
 
-        if (isset($object['metadata']['Order #'])) // source.* events
+        if ($event['type'] == "invoice.payment_succeeded")
+            $orderId = $this->getOrderID($event);
+        else if (isset($object['metadata']['Order #'])) // source.* events
             $orderId = $object['metadata']['Order #'];
         else if (isset($object['source']['metadata']['Order #'])) // charge.* events
             $orderId = $object['source']['metadata']['Order #'];
-        else if (isset($object['lines']['data'][0]['metadata']['Order #'])) // invoice.payment_succeeded
-            $orderId = isset($object['lines']['data'][0]['metadata']['Order #']);
         else if (isset($object['charges']['data'][0]['metadata']['Order #'])) // payment_intent.succeeded
             $orderId = isset($object['charges']['data'][0]['metadata']['Order #']);
         else if (isset($pi['metadata']['Order #']))
@@ -169,9 +196,7 @@ class Webhooks
         else
             throw new WebhookException("Received {$event['type']} webhook but there was no Order # in the source's metadata", 202);
 
-        $order = $this->helper->loadOrderByIncrementId($orderId);
-        if (empty($order) || empty($order->getId()))
-            throw new WebhookException("Received {$event['type']} webhook with Order #$orderId but could not find the order in Magento", 202);
+        $order = $this->loadOrderByIncrementId($orderId, $event);
 
         $paymentMethodCode = $order->getPayment()->getMethod();
         if (strpos($paymentMethodCode, "stripe") !== 0)
@@ -180,6 +205,23 @@ class Webhooks
         // For multi-stripe account configurations, load the correct Stripe API key from the correct store view
         $this->storeManager->setCurrentStore($order->getStoreId());
         $this->config->initStripe();
+
+        return $order;
+    }
+
+    public function loadOrderByIncrementId($orderId, $event)
+    {
+        $order = $this->helper->loadOrderByIncrementId($orderId);
+        if (empty($order) || empty($order->getId()))
+        {
+            // Webhooks Race Condition: Sometimes we may receive the webhook before Magento commits the order to the database,
+            // so we give it a few seconds and try again
+            sleep(5);
+            $order = $this->helper->loadOrderByIncrementId($orderId);
+        }
+
+        if (empty($order) || empty($order->getId()))
+            throw new WebhookException("Received {$event['type']} webhook with Order #$orderId but could not find the order in Magento; ignoring", 202);
 
         return $order;
     }

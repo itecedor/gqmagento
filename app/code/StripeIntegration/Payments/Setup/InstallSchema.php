@@ -8,16 +8,11 @@ use Magento\Framework\Setup\SchemaSetupInterface;
 
 class InstallSchema implements InstallSchemaInterface
 {
-    public function __construct(
-        \StripeIntegration\Payments\Helper\Migrate $migrate,
-        \Magento\Framework\App\State $state
-    ) {
-        $this->migrate = $migrate;
-        $state->setAreaCode('frontend');
-    }
-
     public function install(SchemaSetupInterface $setup, ModuleContextInterface $context)
     {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $this->migrate = $objectManager->create('StripeIntegration\Payments\Helper\Migrate');
+
         $table = $setup->getConnection()->newTable(
                 $setup->getTable('stripe_customers')
             )->addColumn(
