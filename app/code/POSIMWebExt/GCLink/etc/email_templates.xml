@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template id="gclink_email_options_announcement_email" label="POSIM Gift Card Announcement" file="announcement.html"
+              type="html"
+              module="POSIMWebExt_GCLink" area="frontend"/>
+    <template id="gclink_email_options_activated_email" label="POSIM Gift Card Activation" file="activated.html"
+              type="html"
+              module="POSIMWebExt_GCLink" area="frontend"/>
+</config>

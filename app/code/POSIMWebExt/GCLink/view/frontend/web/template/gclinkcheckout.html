@@ -1,0 +1,46 @@
+<div class="payment-option _collapsible opc-payment-additional gclink"
+     data-bind="mageInit: {'collapsible':{'openedState': '_active'}}">
+
+    <div class="payment-option-title field choice" data-role="title">
+        <span class="action action-toggle" id="gclink-title-checkout" role="heading" aria-level="2">
+            <!-- ko text: $t('Apply a Gift Card')--><!-- /ko -->
+        </span>
+    </div>
+    <div class="payment-option-content" data-role="content">
+        <!-- ko foreach: getRegion('messages') -->
+        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
+        <form id="gclink-checkout-form" class="form" data-bind="attr: {'data-hasrequired': $t('* Required Fields')}"
+              data-action="gclink-checkout-form" method="post">
+            <div class="payment-option-inner gclink-inner">
+                <div class="field">
+                    <div class="control">
+                        <input class="input-text"
+                               type="text"
+                               id="posimgc_num"
+                               name="posimgc_num"
+                               data-validate="{'required-entry':true}"
+                               data-bind="attr:{placeholder: $t('Enter your gift card number'),value:gcNum} "/>
+                    </div>
+                </div>
+            </div>
+            <div class="actions-toolbar">
+                <div class="primary">
+                    <!--ko ifnot:hasGCApplied-->
+                    <button class="action action-apply" type="button" data-bind="'value': $t('Apply'), click: apply">
+                        <span data-bind="text:$t('Apply')" ></span>
+                    </button>
+                    <!--/ko-->
+
+                    <!--ko if:hasGCApplied-->
+                    <input type="hidden" name="remove" value="1">
+                    <button class="action action-cancel" type="button" data-bind="'value': $t('Cancel'), click: cancel">
+                        <span data-bind="text:$t('Remove')"></span>
+                    </button>
+                    <!--/ko-->
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>

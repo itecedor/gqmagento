@@ -1,0 +1,50 @@
+<!--@subject Your Gift Card is Ready! @-->
+
+<div style="font:11px/1.35em Verdana, Arial, Helvetica, sans-serif;">
+    <table cellspacing="0" cellpadding="0" border="0" width="98%"
+           style="margin-top:10px; font:11px/1.35em Verdana, Arial, Helvetica, sans-serif; margin-bottom:10px;">
+        <tr>
+            <td align="center" valign="top">
+                <!-- [ header starts here] -->
+                <table cellspacing="0" cellpadding="0" border="0" width="650">
+                    <tr>
+                        <td valign="top">
+                            <p>
+                                <a href="{{store url=""}}" style="color:#1E7EC8;"><img src="{{var logo_url}}"
+                                                                                       alt="Your Gift Card is ready!"
+                                                                                       border="0"/></a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <!-- [ middle starts here] -->
+                <table cellspacing="0" cellpadding="0" border="0" width="650">
+                    <tr>
+                        <td valign="top">
+
+                            <p><b>Hello {{var recipient}}</b></p>
+                            <p>
+                                {{var gifter}} has sent you a gift card in the amount of {{var gc_amount}}.
+                                Your card is activated and ready to use! To use it online, shop here:
+                                <a href="{{store url=""}}">{{config path="general/store_information/name"}}</a>, and at
+                                checkout, enter the Gift Card Number.
+                            </p>
+                            <p>
+                                To use it In Store, print this email out and show it to the clerk at checkout.
+                            </p>
+                            <p>"{{var gift_message}}"</p>
+                            <p>
+                                To check your Gift Card Balance, you can go here: <a href="{{store url="gclink/balance"}}">{{store
+                                url="gclink/balance"}}</a>
+                            </p>
+                            <p>
+                                <b>Gift Card #{{var gc_number}}</b>
+                            </p>
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>

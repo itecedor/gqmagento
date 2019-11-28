@@ -1,0 +1,97 @@
+<?php
+$gcType = $this->getGiftCardType();
+$physGlobal = $this->isPhysicalAllowed();
+$virtGlobal = $this->isVirtualAllowed();
+$product = $this->getProduct();
+$price = $product->getPrice();
+$error = false;
+if ($gcType == "Both Physical and Virtual" && (!$physGlobal || !$virtGlobal)) {
+    if (!$virtGlobal && !$physGlobal) {
+        $error = true;
+        $output = "Sorry, there was a problem processing your request. Please contact us to purchase a gift card.";
+    } elseif (!$physGlobal) {
+        $gcType = "Virtual (email)";
+    } elseif (!$virtGlobal) {
+        $gcType = "Physical (snail mail)";
+    }
+}
+?>
+
+<div class="giftcard-options">
+
+    <?php
+    if ($error) {
+        echo $output;
+    }
+    /** first check if price/value is variable */
+    if ($price == 0) {
+        $minValue = $this->getMinAllowedValue();
+        $maxValue = $this->getMaxAllowedValue(); ?>
+        <label class="label" for="giftcard_amount"><span>Choose Amount:</span></label>
+
+        <input type="text" name="giftcard_amount" id="giftcard_amount" value="<?php echo $minValue ?>" required/>
+        <div class="gcconditions" style="font-size:0.8em; padding:10px 0px;">
+            <?php
+            if ($minValue !== null) { ?>
+                <span style="display:block; font-style:italic;">Minimum Value: <?php echo $minValue; ?></span>
+            <?php }
+            if ($maxValue !== null) { ?>
+                <span style="display:block; font-style:italic;">Maximum Value: <?php echo $maxValue; ?></span>
+            <?php } ?>
+
+        </div>
+        <?php
+    } else { ?>
+        <input type="hidden" id="giftcard_amount" name="giftcard_amount" value="<?php echo $price; ?>"/>
+        <?php
+    }
+    /** second check if card is to be delivered via email or snail mail */
+    if ($gcType == "Physical (snail mail)") { ?>
+        <input type="hidden" value="physical" name="gctype" />
+        <span style="display:block; font-style:italic;">Set Recipient's Ship To Address during Checkout. Please place a separate order for anything that is not being shipped to this address.</span>
+        <?php
+    } elseif ($gcType == "Virtual (email)") { ?>
+        <input type="hidden" value="virtual" name="gctype" />
+        <label for="gc_recipient_email" class="label"><span>Recipient Email:</span></label>
+        <input type="email" id="gc_recipient_email" name="gc_recipient_email" value=""/>
+        <?php
+    } elseif ($gcType == "Both Physical and Virtual") { ?>
+        <div>
+            <label><input type="radio" value="physical" name="gctype" data-rel="shipinstructions" class="trigger" data-validate="{'validate-one-required-by-name':true}" />Physical (Ship it) <br/></label>
+            <span class="shipinstructions instructions">
+			<label>
+                <span style="display:block; font-style:italic;">Set Recipient's Ship To Address during Checkout. <strong>Please place a separate order for anything that is not being shipped to this address.</strong></span>
+			</label>
+		</span>
+            <label><input type="radio" value="virtual" name="gctype" data-rel="emailinput" class="trigger" data-validate="{'validate-one-required-by-name':true}"/>Virtual (Email it)</label>
+            <span class="emailinput instructions">
+            <label>
+                <span>Recipient's Email: </span>
+                <input type="email" id="gc_recipient_email" name="gc_recipient_email" />
+            </label>
+        </span>
+        </div>
+    <?php }
+    ?>
+        <label for="gc_recipient_name"><span>Recipient's Name (optional): </span></label>
+        <input type="text" id="gc_recipient_name" name="gc_recipient_name" />
+    <label for="gc_gift_message"><span>Gift Message (optional): </span></label>
+    <textarea id="gc_gift_message" name="gc_gift_message"></textarea>
+</div>
+<script>
+    require([
+        'jquery'],
+    function($){
+    $('.' + $('.trigger:checked').data('rel')).show();
+    $('.trigger').change(function(){
+        $('.instructions').hide();
+        $('.' + $(this).data('rel')).show();
+
+    })});
+</script>
+
+<style>
+    .instructions {
+        display: none;
+    }
+</style>

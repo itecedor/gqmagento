@@ -1,0 +1,28 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="POSIMWebExt_GCLink::gclink_menu_item"
+             title="GCLink"
+             module="POSIMWebExt_GCLink"
+             sortOrder="9999"
+             resource="Magento_Backend::content"
+             parent="POSIMWebExt_WebExtManager::posim_admin_menu"
+        />
+        <add id="POSIMWebExt_GCLink::view_gift_cards"
+             title="View Gift Cards"
+             module="POSIMWebExt_GCLink"
+             sortOrder="1"
+             resource="Magento_Backend::content"
+             parent="POSIMWebExt_GCLink::gclink_menu_item"
+             action="gclink/cards"
+        />
+        <add id="POSIMWebExt_GCLink::gclink_settings"
+             title="Settings"
+             module="POSIMWebExt_GCLink"
+             sortOrder="3"
+             resource="Magento_Backend::content"
+             parent="POSIMWebExt_GCLink::gclink_menu_item"
+             action="adminhtml/system_config/edit/section/gclink"
+        />
+    </menu>
+</config>

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="order_cancel_after">
+        <observer name="gclink_sales_order_cancel" instance="POSIMWebExt\GCLink\Observer\OrderCancel"/>
+    </event>
+    <event name="sales_order_invoice_pay">
+        <observer name="gclink_sales_order_invoice_pay" instance="POSIMWebExt\GCLink\Observer\InvoicePaid"/>
+    </event>
+    <event name="sales_model_service_quote_submit_before">
+        <observer name="posimwebext_gclink_quote_submit_before" instance="POSIMWebExt\GCLink\Observer\GiftcardPayment"/>
+    </event>
+    <event name="sales_order_creditmemo_refund">
+        <observer name="posimwebext_gclink_creditmemo_save_after" instance="POSIMWebExt\GCLink\Observer\CreditMemo"/>
+    </event>
+</config>

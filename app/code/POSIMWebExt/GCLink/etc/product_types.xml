@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Catalog:etc/product_types.xsd">
+    <type name="posimgc" label="POSIM Gift Card" modelInstance="POSIMWebExt\GCLink\Model\Product\Type\Giftcard" isQty="true">
+        <customAttributes>
+            <attribute name="posimgc_type"/>
+        </customAttributes>
+        <priceModel instance="POSIMWebExt\GCLink\Model\Product\Price"/>
+    </type>
+</config>

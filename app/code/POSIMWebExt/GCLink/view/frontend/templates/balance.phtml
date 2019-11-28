@@ -1,0 +1,18 @@
+<h1>Check a Gift Card Balance</h1>
+
+<h4><strong>Card Balance:  </strong><?php echo $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($this->escapeHtml($this->getBalance()), true, false); ?></h4>
+<?php
+$cardNum = $this->getCardNum();
+if ($cardNum) {
+    $gcData = $this->helper('POSIMWebExt\GCLink\Helper\Data')->getBalance(array('cardnum' => $cardNum));
+//    echo '<strong>Card Balance:</strong> ' . $this->helper('Magento\Framework\Pricing\Helper\Data')->currency($gcData[11], true, false);
+}
+?>
+<div class="gclink-balance-form" style="max-width:200px;">
+    <form enctype="multipart/form-data" method="post" action="">
+        <label for="cardnum">Card Number</label>
+        <input type="text" name="cardnum" value="<?php echo(null !== $cardNum ? $cardNum : ''); ?>" autocomplete="off"/>
+        <br/>
+        <input type="submit" value="Check Balance"/>
+    </form>
+</div>

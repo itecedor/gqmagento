@@ -1,0 +1,49 @@
+<!--@subject A Gift For You! @-->
+<div style="font:11px/1.35em Verdana, Arial, Helvetica, sans-serif;">
+    <table cellspacing="0" cellpadding="0" border="0" width="98%"
+           style="margin-top:10px; font:11px/1.35em Verdana, Arial, Helvetica, sans-serif; margin-bottom:10px;">
+        <tr>
+            <td align="center" valign="top">
+                <!-- [ header starts here] -->
+                <table cellspacing="0" cellpadding="0" border="0" width="650">
+                    <tr>
+                        <td valign="top">
+                            <p>
+                                <a href="{{store url=""}}" style="color:#1E7EC8;"><img src="{{var logo_url}}"
+                                                                                       alt="New Gift Card headed your way!"
+                                                                                       border="0"/></a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <!-- [ middle starts here] -->
+                <table cellspacing="0" cellpadding="0" border="0" width="650">
+                    <tr>
+                        <td valign="top">
+                            <p>
+                                <b>Hello, {{var recipient_name}}</b><br/>
+                                {{if from_name}}
+                                You have been given a gift card in the amount of {{var gc_amount}} from {{var
+                                from_name}}!
+                                {{else}}
+                                You have been given a gift card in the amount of {{var gc_amount}}!
+                                {{/if}}
+                            </p>
+                            <p>
+                                {{if message}}
+                                {{var message}}
+                                {{/if}}
+                            </p>
+                            <p>
+                                This card is still pending processing and will not be active for 2 - 3 business days.
+                                You will receive an email with the Gift Card number when it is activated and ready. You
+                                will be able to use the Gift Card online at <a href="{{store url=""}}">{{config
+                                path="general/store_information/name"}}</a> or in store.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
