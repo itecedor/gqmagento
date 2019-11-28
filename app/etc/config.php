@@ -242,7 +242,7 @@ return [
         'MagePal_Reindex' => 1,
         'Magery_DisableReviews' => 1,
         'Milople_All' => 1,
-        'Milople_Requestforquote' => 0,
+        'Milople_Requestforquote' => 1,
         'POSIMWebExt_EVOLinkerAPI' => 1,
         'POSIMWebExt_GCLink' => 1,
         'POSIMWebExt_WebExtManager' => 1,
