@@ -196,7 +196,8 @@ class CartPlugin
     public function setGCAdditionalOptions($quoteItem)
     {
         $giftCardConfig = $this->catalogSession->getData('posimgc_settings');
-        $additionalOptions = array();
+        //$additionalOptions = array();
+		$additionalOptions = [];
         $setPrice = 0;
         if ($additionalOption = $quoteItem->getOptionByCode('additional_options')) {
             $additionalOptions = (array)$this->serializer->unserialize($additionalOption->getValue());
