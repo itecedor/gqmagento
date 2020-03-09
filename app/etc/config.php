@@ -72,7 +72,7 @@ return [
         'Magento_EncryptionKey' => 1,
         'Magento_Fedex' => 0,
         'Magento_GiftMessage' => 1,
-        'Magento_GoogleAdwords' => 0,
+        'Magento_GoogleAdwords' => 1,
         'Magento_GoogleAnalytics' => 1,
         'Magento_Ui' => 1,
         'Magento_GoogleShoppingAds' => 1,
