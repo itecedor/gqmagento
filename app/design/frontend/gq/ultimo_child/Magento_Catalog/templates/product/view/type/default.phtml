@@ -15,7 +15,7 @@
     <?php else :?>
         <?php if ($_product->getData("in_store_only")): ?>
           <div title="<?= $block->escapeHtmlAttr(__('Availability')) ?>">
-              <span><?= $block->escapeHtml(__('This item is not available for online sale but we can ship it to your house. Please email us@gothamquilts.com for more details.')) ?></span>
+              <span><?= $block->escapeHtml(__('Please email us@gothamquilts.com to order this sewing machine.')) ?></span>
           </div>
         <?php elseif (!$_product->getData("free_download")): ?>
         <div class="stock unavailable" title="<?= $block->escapeHtmlAttr(__('Availability')) ?>">
