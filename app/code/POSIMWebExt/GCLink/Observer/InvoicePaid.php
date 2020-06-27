@@ -10,14 +10,17 @@ class InvoicePaid implements ObserverInterface
 {
     protected $gcHelper;
     protected $orderItemExtensionFactory;
+    protected $logger;
 
     public function __construct(\POSIMWebExt\GCLink\Helper\Data $gclinkHelper,
-                                \Magento\Sales\Api\Data\OrderItemExtensionFactory $orderItemExtensionFactory
-    )
+                                \Magento\Sales\Api\Data\OrderItemExtensionFactory $orderItemExtensionFactory,
+								\POSIMWebExt\GCLink\Logger\Logger $logger
+	)
     {
         $this->gcHelper = $gclinkHelper;
         $this->orderItemExtensionFactory = $orderItemExtensionFactory;
-    }
+        $this->logger = $logger;
+	}
 
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
@@ -26,23 +29,48 @@ class InvoicePaid implements ObserverInterface
         $invoiceItems = $invoice->getItemsCollection();
         foreach ($invoiceItems as $item) {
             if ($item->getOrderItem()->getProductType() == 'posimgc') {
+				$this->logger->addDebug("product name: " . $item->getOrderItem()->getName());
+				$this->logger->addDebug('options', $item->getOrderItem()->getProductOptions());
+
                 $options = $item->getOrderItem()->getProductOptions();
-                $additionalOptions = $options['additional_options'];
+				$this->logger->addDebug('options variable', $options);
+
+                //$additionalOptions = $options['additional_options'];
+
+				$additionalOptions = isset($options['additional_options']) ? $options['additional_options'] : null;
+				$this->logger->addDebug('additional_options', $options['additional_options']);
+
+				if (is_array($additionalOptions))
+				{
+					$this->logger->addDebug('additional options', $additionalOptions);
+					$this->logger->addDebug('product options from invoice', $item->getOrderItem()->getProductOptions());
+					$this->logger->addDebug('options', $options);
+				}
+				else
+				{
+					$this->logger->addDebug('$additionalOptions not an array.');
+				}
+
                 foreach ($additionalOptions as $option) {
                     if ($option['label'] == 'amount') {
                         $amount = $option['value'];
+						$this->logger->addDebug($amount);
                     }
                     if ($option['label'] == 'email') {
                         $gcRecipEmail = $option['value'];
+						$this->logger->addDebug($gcRecipEmail);
                     }
                     if ($option['label'] == 'type') {
                         $gcType = $option['value'];
+						$this->logger->addDebug($gcType);
                     }
                     if ($option['label'] == 'recip_name') {
                         $gcRecipName = $option['value'];
+						$this->logger->addDebug($gcRecipName);
                     }
                     if ($option['label'] == 'gc_giftmessage') {
                         $gcGiftMessage = $option['value'];
+						$this->logger->addDebug($gcGiftMessage);
                     }
                 }
                 if ($amount != 0 && isset($gcType) && $gcType == 'virtual') {
