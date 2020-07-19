@@ -31,14 +31,14 @@ class GiftcardPayment implements ObserverInterface
         if (!$giftcard || !$baseGiftcard) {
             return $this;
         }
-		
+
 		if ($giftcardNumber) {
 			$order = $observer->getOrder();
 			$order->setData('posimgiftcard', -$giftcard);
 			$order->setData('base_posimgiftcard', -$baseGiftcard);
 			$order->setData('posimgc_num', $giftcardNumber);
 			$orderIncrementId = $order->getIncrementId();
-			$this->logger->addDebug('Deducting Gift Card amount ' . -$giftcard . ' from GCLINK');
+			//$this->logger->addDebug('Deducting Gift Card amount ' . -$giftcard . ' from GCLINK');
 			$options = array(
 				'x_Card_Num'    => $giftcardNumber,
 				'x_Type'        => 'PY',
@@ -48,7 +48,7 @@ class GiftcardPayment implements ObserverInterface
 			$gcLinkResponse = $this->helper->postGCLinkTransaction($options);
 			$this->logger->addDebug(100, $gcLinkResponse);
 			if ($gcLinkResponse[0] != 1) {
-				$this->logger->addDebug($orderIncrementId . ' gift card failure with ' . $giftcardNumber . ' because ' . $gcLinkResponse[3]);
+				//$this->logger->addDebug($orderIncrementId . ' gift card failure with ' . $giftcardNumber . ' because ' . $gcLinkResponse[3]);
 				throw new LocalizedException(__('The gift card you applied no longer has a valid balance or there was an error in processing. Please remove the gift card and try again.'));
 			} else {
 				return $this;

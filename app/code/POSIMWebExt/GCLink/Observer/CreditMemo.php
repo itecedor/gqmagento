@@ -36,6 +36,6 @@ class CreditMemo implements ObserverInterface
          * with the same invoice id on the GCLink database.
          */
         $gcLinkResponse = $this->helper->postGCLinkTransaction($options);
-        $this->logger->addDebug($gcLinkResponse);
+        //$this->logger->addDebug($gcLinkResponse);
     }
 }
