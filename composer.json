@@ -10,7 +10,7 @@
     "require": {
         "magento/product-community-edition": "2.3.5-p1",
         "composer/composer": "@alpha",
-        "taxjar/module-taxjar": "^1.0",
+        "taxjar/module-taxjar": "1.5.0",
         "apptrian/facebook-pixel": "4.0.1",
         "msp/recaptcha": "^2.2",
 	      "auctane/api": "dev-master#89d93cc",
