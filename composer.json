@@ -13,7 +13,7 @@
         "taxjar/module-taxjar": "^1.0",
         "apptrian/facebook-pixel": "4.0.1",
         "msp/recaptcha": "^2.2",
-	      "auctane/api": "dev-master#2caa9c4",
+	      "auctane/api": "dev-master#89d93cc",
         "mailchimp/mc-magento2": "^102.3.37",
         "magemojo/m2-ce-cron": "^1.3.1",
         "apptrian/facebook-catalog": "1.6.2",
