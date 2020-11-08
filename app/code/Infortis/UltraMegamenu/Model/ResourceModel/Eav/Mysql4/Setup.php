@@ -20,7 +20,7 @@ class Setup //extends EntitySetup
      */
     protected function _prepareValues($attr)
     {
-        $data = parent::_prepareValues($attr);
+        //$data = parent::_prepareValues($attr);
         $data = array_merge($data, [
             'frontend_input_renderer'       => $this->_getValue($attr, 'input_renderer'),
             'is_global'                     => $this->_getValue(
